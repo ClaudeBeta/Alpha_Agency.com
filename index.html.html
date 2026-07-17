@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alpdy Agency</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#FFFFFF;
+    --bg-1:#F5F5FA;
+    --bg-2:#EEEEF5;
+    --surface:#FFFFFF;
+    --surface-hover:#F7F7FC;
+    --border:#E3E3EE;
+    --border-soft:#ECECF4;
+    --violet:#7C5CFC;
+    --violet-dim:#4C3D9E;
+    --violet-glow:rgba(124,92,252,0.10);
+    --blue:#2F80F0;
+    --teal:#0FA8A0;
+    --coral:#F2643B;
+    --pink:#E23C82;
+    --text-hi:#15151F;
+    --text-mid:#67667E;
+    --text-low:#9C9BAE;
+    --green:#1FA971;
+    --amber:#B26B00;
+    --red:#D6304A;
+    --gold:#B8862E;
+    --silver:#7C7E8C;
+    --bronze:#A15A2E;
+    --radius:12px;
+    --radius-sm:8px;
+    --card-shadow:0 1px 3px rgba(20,20,40,0.05), 0 1px 2px rgba(20,20,40,0.04);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Inter',sans-serif;
+    background:var(--bg-0);
+    color:var(--text-hi);
+    min-height:100vh;
+  }
+  ::selection{ background:var(--violet); color:#fff; }
+  ::-webkit-scrollbar{ width:8px; height:8px; }
+  ::-webkit-scrollbar-thumb{ background:var(--border); border-radius:8px; }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+  .disp{ font-family:'Space Grotesk',sans-serif; }
+
+  #app{ display:none; }
+  #app.ready{ display:block; }
+
+  /* ---------- LOGIN ---------- */
+  #login-screen{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    position:relative;
+    overflow:hidden;
+  }
+  #login-screen::before{
+    content:"";
+    position:absolute;
+    top:-30%; left:50%; transform:translateX(-50%);
+    width:900px; height:900px;
+    background:radial-gradient(circle, var(--violet-glow) 0%, transparent 65%);
+    pointer-events:none;
+  }
+  #login-screen{ background:var(--bg-1); }
+  .login-card{
+    width:100%; max-width:420px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:40px 36px;
+    position:relative;
+    z-index:1;
+    box-shadow:0 4px 24px rgba(20,20,40,0.06);
+  }
+  .brand-mark{
+    display:flex; align-items:center; gap:10px; margin-bottom:28px;
+  }
+  .brand-mark .dot{
+    width:34px; height:34px; border-radius:9px;
+    background:linear-gradient(135deg, var(--violet), var(--blue));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px; color:#fff;
+  }
+  .brand-mark span{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:19px; letter-spacing:-0.01em; }
+  .login-card h1{ font-family:'Space Grotesk',sans-serif; font-size:24px; font-weight:600; margin-bottom:6px; letter-spacing:-0.01em; }
+  .login-card p.sub{ color:var(--text-mid); font-size:14px; margin-bottom:28px; }
+
+  .role-toggle{ display:flex; gap:8px; margin-bottom:22px; background:var(--bg-1); padding:4px; border-radius:10px; border:1px solid var(--border-soft); }
+  .role-toggle button{
+    flex:1; padding:9px; border:none; background:transparent; color:var(--text-mid);
+    font-size:13px; font-weight:600; border-radius:8px; cursor:pointer; transition:.15s;
+    font-family:'Inter',sans-serif;
+  }
+  .role-toggle button.active{ background:var(--violet); color:#fff; }
+
+  label.field-label{ display:block; font-size:12px; color:var(--text-mid); margin-bottom:6px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+  select, input[type=text], input[type=number], input[type=url], textarea{
+    width:100%; background:var(--bg-1); border:1px solid var(--border); color:var(--text-hi);
+    padding:11px 13px; border-radius:9px; font-size:14px; font-family:'Inter',sans-serif; outline:none;
+    transition:.15s;
+  }
+  select:focus, input:focus, textarea:focus{ border-color:var(--violet); box-shadow:0 0 0 3px var(--violet-glow); }
+  .field{ margin-bottom:16px; }
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:11px 18px; border-radius:9px; border:none; font-size:14px; font-weight:600;
+    cursor:pointer; font-family:'Inter',sans-serif; transition:.15s;
+  }
+  .btn-primary{ background:linear-gradient(135deg, var(--violet), #6A4CE0); color:#fff; width:100%; }
+  .btn-primary:hover{ filter:brightness(1.1); }
+  .btn-ghost{ background:var(--bg-1); color:var(--text-hi); border:1px solid var(--border); }
+  .btn-ghost:hover{ background:var(--surface-hover); }
+  .btn-sm{ padding:7px 12px; font-size:12.5px; }
+  .btn-danger{ background:rgba(240,73,90,0.12); color:var(--red); border:1px solid rgba(240,73,90,0.3); }
+  .btn-success{ background:rgba(46,212,122,0.12); color:var(--green); border:1px solid rgba(46,212,122,0.3); }
+
+  .hint{ font-size:12.5px; color:var(--text-low); margin-top:14px; text-align:center; }
+
+  /* ---------- LAYOUT ---------- */
+  #shell{ display:flex; min-height:100vh; }
+  #sidebar{
+    width:236px; background:var(--bg-1); border-right:1px solid var(--border-soft);
+    display:flex; flex-direction:column; padding:20px 14px; position:sticky; top:0; height:100vh;
+  }
+  #sidebar .brand-mark{ margin-bottom:30px; padding:0 8px; }
+  .nav-section-label{ font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-low); margin:16px 10px 8px; font-weight:600; }
+  .nav-item{
+    display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:9px; cursor:pointer;
+    color:var(--text-mid); font-size:14px; font-weight:500; margin-bottom:2px; transition:.15s;
+    border:1px solid transparent;
+  }
+  .nav-item:hover{ background:var(--surface); color:var(--text-hi); }
+  .nav-item.active{ background:var(--violet-glow); color:var(--violet); border-color:rgba(124,92,252,0.3); }
+  .nav-item .ic{ width:18px; text-align:center; font-size:15px; }
+  #sidebar-footer{ margin-top:auto; padding-top:14px; border-top:1px solid var(--border-soft); }
+  .user-chip{ display:flex; align-items:center; gap:10px; padding:8px; border-radius:9px; }
+  .avatar{
+    width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--violet),var(--blue));
+    display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#fff; flex-shrink:0;
+  }
+  .user-chip .name{ font-size:13px; font-weight:600; }
+  .user-chip .role{ font-size:11px; color:var(--text-low); }
+  .logout-link{ font-size:12px; color:var(--text-low); cursor:pointer; margin-top:8px; padding:0 8px; display:block; }
+  .logout-link:hover{ color:var(--red); }
+
+  #main{ flex:1; padding:28px 34px; max-width:1180px; }
+  .page-head{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+  .page-head h2{ font-family:'Space Grotesk',sans-serif; font-size:22px; font-weight:600; letter-spacing:-0.01em; }
+  .page-head p{ color:var(--text-mid); font-size:13.5px; margin-top:3px; }
+
+  .view{ display:none; }
+  .view.active{ display:block; }
+
+  /* ---------- CARDS / GRID ---------- */
+  .grid{ display:grid; gap:14px; }
+  .grid-4{ grid-template-columns:repeat(4,1fr); }
+  .grid-3{ grid-template-columns:repeat(3,1fr); }
+  .grid-2{ grid-template-columns:2fr 1fr; }
+  @media(max-width:1000px){ .grid-4{grid-template-columns:repeat(2,1fr);} .grid-3{grid-template-columns:1fr;} .grid-2{grid-template-columns:1fr;} }
+
+  .card{ background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius); padding:18px 20px; box-shadow:var(--card-shadow); }
+  .stat-card .stat-label{ font-size:12px; color:var(--text-mid); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; }
+  .stat-card .stat-value{ font-family:'JetBrains Mono',monospace; font-size:26px; font-weight:600; letter-spacing:-0.02em; }
+  .stat-card .stat-sub{ font-size:12px; color:var(--text-low); margin-top:6px; }
+  .stat-icon{ width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:13px; }
+
+  .card-title{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15px; margin-bottom:14px; }
+
+  table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  th{ text-align:left; color:var(--text-low); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; padding:0 10px 10px; border-bottom:1px solid var(--border-soft); }
+  td{ padding:12px 10px; border-bottom:1px solid var(--border-soft); }
+  tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:var(--bg-1); }
+
+  .badge{ display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:99px; font-size:11.5px; font-weight:600; }
+  .badge-pending{ background:rgba(245,166,35,0.13); color:var(--amber); }
+  .badge-validated{ background:rgba(46,212,122,0.13); color:var(--green); }
+  .badge-rejected{ background:rgba(240,73,90,0.13); color:var(--red); }
+  .badge-paid{ background:rgba(124,92,252,0.15); color:var(--violet); }
+
+  .progress-track{ height:10px; background:var(--bg-1); border-radius:99px; overflow:hidden; border:1px solid var(--border-soft); }
+  .progress-fill{ height:100%; background:linear-gradient(90deg,var(--violet),var(--blue)); border-radius:99px; transition:width .4s; }
+
+  .empty-state{ text-align:center; padding:40px 20px; color:var(--text-low); }
+  .empty-state .ic{ font-size:26px; margin-bottom:8px; }
+
+  /* podium */
+  .podium-wrap{ display:flex; align-items:flex-end; justify-content:center; gap:14px; margin:10px 0 26px; }
+  .podium-slot{ display:flex; flex-direction:column; align-items:center; width:150px; }
+  .podium-slot .avatar{ width:52px; height:52px; font-size:17px; margin-bottom:10px; }
+  .podium-slot .pname{ font-weight:600; font-size:14px; margin-bottom:4px; text-align:center; }
+  .podium-slot .pviews{ font-size:12px; color:var(--text-mid); margin-bottom:10px; font-family:'JetBrains Mono',monospace; }
+  .podium-bar{ width:100%; border-radius:10px 10px 0 0; display:flex; align-items:flex-start; justify-content:center; padding-top:10px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:20px; }
+  .p1 .podium-bar{ height:110px; background:linear-gradient(180deg, rgba(232,196,104,0.22), rgba(232,196,104,0.05)); border:1px solid rgba(232,196,104,0.35); color:var(--gold); }
+  .p2 .podium-bar{ height:80px; background:linear-gradient(180deg, rgba(199,203,216,0.18), rgba(199,203,216,0.04)); border:1px solid rgba(199,203,216,0.3); color:var(--silver); }
+  .p3 .podium-bar{ height:58px; background:linear-gradient(180deg, rgba(210,139,92,0.2), rgba(210,139,92,0.04)); border:1px solid rgba(210,139,92,0.35); color:var(--bronze); }
+
+  .rank-num{ font-family:'JetBrains Mono',monospace; font-weight:600; color:var(--text-mid); width:22px; display:inline-block; }
+
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(5,5,12,0.7); display:none; align-items:center; justify-content:center; z-index:50; padding:20px;
+  }
+  .modal-overlay.show{ display:flex; }
+  .modal{ background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:26px; width:100%; max-width:480px; max-height:88vh; overflow-y:auto; }
+  .modal h3{ font-family:'Space Grotesk',sans-serif; font-size:17px; margin-bottom:16px; }
+
+  .kv-row{ display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border-soft); font-size:13.5px; }
+  .kv-row:last-child{ border-bottom:none; }
+  .kv-row .k{ color:var(--text-mid); }
+  .kv-row .v{ font-weight:600; }
+
+  .platform-tag{ font-size:11px; padding:2px 7px; border-radius:5px; background:var(--bg-1); color:var(--text-mid); border:1px solid var(--border-soft); }
+
+  .toast{
+    position:fixed; bottom:24px; right:24px; background:var(--surface); border:1px solid var(--border);
+    padding:13px 18px; border-radius:10px; font-size:13.5px; z-index:100; display:none; box-shadow:0 8px 30px rgba(0,0,0,0.4);
+  }
+  .toast.show{ display:block; }
+  .toast.success{ border-color:rgba(46,212,122,0.4); color:var(--green); }
+  .toast.error{ border-color:rgba(240,73,90,0.4); color:var(--red); }
+
+  .divider{ height:1px; background:var(--border-soft); margin:22px 0; }
+
+  .global-note{ font-size:12.5px; color:var(--text-low); margin-top:10px; font-style:italic; line-height:1.5; }
+
+  .mobile-note{ display:none; }
+  @media(max-width:780px){
+    #shell{ flex-direction:column; }
+    #sidebar{ width:100%; height:auto; position:relative; flex-direction:row; align-items:center; overflow-x:auto; padding:12px; gap:6px; }
+    #sidebar .brand-mark{ margin-bottom:0; }
+    .nav-section-label{ display:none; }
+    #sidebar-footer{ display:none; }
+    #main{ padding:18px; }
+    .grid-4, .grid-3, .grid-2{ grid-template-columns:1fr; }
+    .podium-wrap{ flex-wrap:wrap; }
+  }
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <div class="brand-mark"><div class="dot">A</div><span>Alpdy Agency</span></div>
+    <h1 id="login-title">Se connecter</h1>
+    <p class="sub">Espace de gestion de l'équipe de clippers.</p>
+
+    <div class="role-toggle">
+      <button id="tab-clipper" class="active" onclick="setLoginTab('clipper')">Clipper</button>
+      <button id="tab-admin" onclick="setLoginTab('admin')">Administrateur</button>
+    </div>
+
+    <div id="clipper-login-block">
+      <div class="field">
+        <label class="field-label">Choisir mon profil</label>
+        <select id="clipper-select"></select>
+      </div>
+      <button class="btn btn-primary" onclick="loginAsClipper()">Entrer dans l'espace</button>
+      <div class="hint">Nouveau ici ? <span style="color:var(--violet); cursor:pointer;" onclick="toggleNewClipper()">Créer un profil clipper</span></div>
+      <div id="new-clipper-block" style="display:none; margin-top:16px;">
+        <div class="field"><label class="field-label">Pseudo</label><input type="text" id="new-clipper-pseudo" placeholder="Ex : ClipMaster"></div>
+        <button class="btn btn-ghost" style="width:100%;" onclick="createClipper()">Créer le profil</button>
+      </div>
+    </div>
+
+    <div id="admin-login-block" style="display:none;">
+      <div class="field"><label class="field-label">Code administrateur</label><input type="text" id="admin-code" placeholder="Code d'accès manager"></div>
+      <button class="btn btn-primary" onclick="loginAsAdmin()">Entrer dans le dashboard</button>
+      <div class="hint">Code de démonstration : <span class="mono">alpdy2026</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+<div id="shell">
+  <div id="sidebar">
+    <div class="brand-mark"><div class="dot">A</div><span>Alpdy Agency</span></div>
+
+    <div id="nav-admin" style="display:none;">
+      <div class="nav-item active" data-view="dashboard" onclick="showView('dashboard')"><span class="ic">◆</span>Dashboard</div>
+      <div class="nav-item" data-view="validation" onclick="showView('validation')"><span class="ic">✓</span>Validation</div>
+      <div class="nav-item" data-view="clippers" onclick="showView('clippers')"><span class="ic">◎</span>Clippers</div>
+      <div class="nav-item" data-view="classement" onclick="showView('classement')"><span class="ic">🏆</span>Classement</div>
+      <div class="nav-item" data-view="paiements" onclick="showView('paiements')"><span class="ic">◈</span>Paiements</div>
+      <div class="nav-item" data-view="parametres" onclick="showView('parametres')"><span class="ic">⚙</span>Paramètres</div>
+    </div>
+
+    <div id="nav-clipper" style="display:none;">
+      <div class="nav-item active" data-view="c-dashboard" onclick="showView('c-dashboard')"><span class="ic">◆</span>Dashboard</div>
+      <div class="nav-item" data-view="c-submit" onclick="showView('c-submit')"><span class="ic">+</span>Soumettre</div>
+      <div class="nav-item" data-view="c-videos" onclick="showView('c-videos')"><span class="ic">▤</span>Mes vidéos</div>
+      <div class="nav-item" data-view="classement" onclick="showView('classement')"><span class="ic">🏆</span>Classement</div>
+      <div class="nav-item" data-view="c-profil" onclick="showView('c-profil')"><span class="ic">◎</span>Profil</div>
+    </div>
+
+    <div id="sidebar-footer">
+      <div class="user-chip">
+        <div class="avatar" id="user-avatar">?</div>
+        <div><div class="name" id="user-name">-</div><div class="role" id="user-role">-</div></div>
+      </div>
+      <div class="logout-link" onclick="logout()">↩ Changer de compte</div>
+    </div>
+  </div>
+
+  <div id="main">
+
+    <!-- ADMIN DASHBOARD -->
+    <div class="view" id="view-dashboard">
+      <div class="page-head"><div><h2>Dashboard</h2><p>Vue d'ensemble de la performance de l'équipe.</p></div></div>
+      <div class="grid grid-4" id="admin-stats"></div>
+      <div class="divider"></div>
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="card-title">Dernières vidéos soumises</div>
+          <table><thead><tr><th>Clipper</th><th>Titre</th><th>Plateforme</th><th>Vues</th><th>Statut</th></tr></thead><tbody id="recent-videos-body"></tbody></table>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:14px;">
+            <div class="card-title">Objectif global</div>
+            <div id="admin-objective"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Meilleurs clippers</div>
+            <div id="top-clippers-mini"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN VALIDATION -->
+    <div class="view" id="view-validation">
+      <div class="page-head"><div><h2>Validation des performances</h2><p>Vérifie les preuves avant de valider les vues.</p></div></div>
+      <div class="card">
+        <table><thead><tr><th>Clipper</th><th>Titre</th><th>Plateforme</th><th>Vues déclarées</th><th>Statut</th><th></th></tr></thead><tbody id="validation-body"></tbody></table>
+      </div>
+    </div>
+
+    <!-- ADMIN CLIPPERS -->
+    <div class="view" id="view-clippers">
+      <div class="page-head"><div><h2>Clippers</h2><p>Tous les membres de l'équipe.</p></div></div>
+      <div class="card">
+        <table><thead><tr><th>Pseudo</th><th>Inscrit le</th><th>Vidéos validées</th><th>Vues validées</th><th>Gains</th></tr></thead><tbody id="clippers-body"></tbody></table>
+      </div>
+    </div>
+
+    <!-- CLASSEMENT (shared) -->
+    <div class="view" id="view-classement">
+      <div class="page-head"><div><h2>🏆 Classement</h2><p>Compétition transparente entre tous les clippers de l'agence.</p></div></div>
+      <div class="podium-wrap" id="podium"></div>
+      <div class="card">
+        <table><thead><tr><th>Pos</th><th>Clipper</th><th>Vues validées</th><th>Vidéos</th><th>Gains</th><th>Paiement</th></tr></thead><tbody id="ranking-body"></tbody></table>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <div class="card-title">Statistiques globales du programme</div>
+        <div class="grid grid-2" style="grid-template-columns:1fr 1fr;">
+          <div><div class="stat-label" style="font-size:12px; color:var(--text-mid); font-weight:600; text-transform:uppercase;">Total des vues</div><div class="stat-value mono" id="global-views" style="font-size:22px; font-weight:600;">-</div></div>
+          <div><div class="stat-label" style="font-size:12px; color:var(--text-mid); font-weight:600; text-transform:uppercase;">Total des gains</div><div class="stat-value mono" id="global-gains" style="font-size:22px; font-weight:600;">-</div></div>
+        </div>
+        <p class="global-note">Les chiffres affichés représentent les performances globales de l'ensemble des clippers du programme et ne correspondent pas aux performances personnelles d'un seul utilisateur.</p>
+      </div>
+    </div>
+
+    <!-- ADMIN PAIEMENTS -->
+    <div class="view" id="view-paiements">
+      <div class="page-head"><div><h2>Paiements</h2><p>Suivi des montants dus et des paiements effectués.</p></div></div>
+      <div class="card">
+        <table><thead><tr><th>Clipper</th><th>Gains totaux</th><th>Déjà payé</th><th>Restant dû</th><th>Statut</th><th></th></tr></thead><tbody id="payments-body"></tbody></table>
+      </div>
+    </div>
+
+    <!-- ADMIN PARAMETRES -->
+    <div class="view" id="view-parametres">
+      <div class="page-head"><div><h2>Paramètres</h2><p>Configuration du programme.</p></div></div>
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="card-title">Rémunération</div>
+          <div class="field"><label class="field-label">Prix pour 1000 vues (FCFA)</label><input type="number" id="setting-price"></div>
+          <div class="field"><label class="field-label">Objectif de vues global</label><input type="number" id="setting-objective"></div>
+          <button class="btn btn-primary" onclick="saveSettings()">Enregistrer</button>
+        </div>
+        <div class="card">
+          <div class="card-title">Export</div>
+          <p style="color:var(--text-mid); font-size:13.5px; margin-bottom:14px;">Génère un export des données de l'agence en CSV (ouvrable dans Excel).</p>
+          <button class="btn btn-ghost" style="width:100%; margin-bottom:10px;" onclick="exportCSV()">Exporter en CSV (Excel)</button>
+          <button class="btn btn-ghost" style="width:100%;" onclick="exportPDF()">Exporter le rapport (impression / PDF)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLIPPER DASHBOARD -->
+    <div class="view" id="view-c-dashboard">
+      <div class="page-head"><div><h2 id="c-dash-title">Mon espace</h2><p>Ton résumé de performance.</p></div></div>
+      <div class="grid grid-4" id="clipper-stats"></div>
+      <div class="divider"></div>
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="card-title">Mes dernières vidéos</div>
+          <table><thead><tr><th>Titre</th><th>Plateforme</th><th>Vues</th><th>Statut</th></tr></thead><tbody id="c-recent-videos"></tbody></table>
+        </div>
+        <div class="card">
+          <div class="card-title">Objectif global de l'équipe</div>
+          <div id="clipper-objective"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLIPPER SUBMIT -->
+    <div class="view" id="view-c-submit">
+      <div class="page-head"><div><h2>Soumettre une vidéo</h2><p>Déclare tes performances pour validation.</p></div></div>
+      <div class="card" style="max-width:560px;">
+        <div class="field"><label class="field-label">Titre de la vidéo</label><input type="text" id="sub-title" placeholder="Ex : Clip highlight #12"></div>
+        <div class="field"><label class="field-label">Plateforme</label>
+          <select id="sub-platform"><option>TikTok</option><option>YouTube</option><option>Autre</option></select>
+        </div>
+        <div class="field"><label class="field-label">URL de la vidéo</label><input type="url" id="sub-url" placeholder="https://..."></div>
+        <div class="field"><label class="field-label">Nombre de vues obtenu</label><input type="number" id="sub-views" placeholder="0"></div>
+        <div class="field"><label class="field-label">Preuve (lien capture d'écran ou description)</label><textarea id="sub-proof" rows="3" placeholder="Lien vers la capture d'écran ou description de la preuve"></textarea></div>
+        <button class="btn btn-primary" onclick="submitVideo()">Envoyer pour validation</button>
+      </div>
+    </div>
+
+    <!-- CLIPPER VIDEOS -->
+    <div class="view" id="view-c-videos">
+      <div class="page-head"><div><h2>Mes vidéos</h2><p>Historique de toutes tes soumissions.</p></div></div>
+      <div class="card">
+        <table><thead><tr><th>Titre</th><th>Plateforme</th><th>Vues</th><th>Statut</th><th></th></tr></thead><tbody id="c-videos-body"></tbody></table>
+      </div>
+    </div>
+
+    <!-- CLIPPER PROFIL -->
+    <div class="view" id="view-c-profil">
+      <div class="page-head"><div><h2>Mon profil</h2><p></p></div></div>
+      <div class="grid grid-2">
+        <div class="card">
+          <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+            <div class="avatar" style="width:52px; height:52px; font-size:18px;" id="profil-avatar">?</div>
+            <div><div style="font-weight:600; font-size:17px;" id="profil-pseudo">-</div><div style="font-size:12.5px; color:var(--text-mid);" id="profil-joined">-</div></div>
+          </div>
+          <div class="kv-row"><span class="k">Vidéos soumises</span><span class="v" id="profil-videos">-</span></div>
+          <div class="kv-row"><span class="k">Vues validées</span><span class="v" id="profil-views">-</span></div>
+          <div class="kv-row"><span class="k">Gains totaux</span><span class="v" id="profil-gains">-</span></div>
+          <div class="kv-row"><span class="k">Classement actuel</span><span class="v" id="profil-rank">-</span></div>
+          <div class="kv-row"><span class="k">Statut paiement</span><span class="v" id="profil-paid">-</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Historique des paiements</div>
+          <table><thead><tr><th>Date</th><th>Montant</th><th>Statut</th></tr></thead><tbody id="profil-payments-body"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal-content"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+let DATA = { clippers: [], videos: [], payments: [], settings: { pricePer1000: 100, objectiveViews: 10000000 } };
+let SESSION = null;
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function fmtMoney(n){ n = Math.round(n||0); return n.toLocaleString('fr-FR').replace(/,/g,' ').replace(/\u00A0/g,' ') + ' FCFA'; }
+function fmtNum(n){ return Math.round(n||0).toLocaleString('fr-FR').replace(/\u00A0/g,' '); }
+function initials(name){ return (name||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+function showToast(msg, type){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + (type||'success');
+  setTimeout(()=>{ t.classList.remove('show'); }, 2600);
+}
+
+async function loadAll(){
+  try{
+    const c = await window.storage.get('clippers', true);
+    DATA.clippers = c ? JSON.parse(c.value) : [];
+  }catch(e){ DATA.clippers = []; }
+  try{
+    const v = await window.storage.get('videos', true);
+    DATA.videos = v ? JSON.parse(v.value) : [];
+  }catch(e){ DATA.videos = []; }
+  try{
+    const p = await window.storage.get('payments', true);
+    DATA.payments = p ? JSON.parse(p.value) : [];
+  }catch(e){ DATA.payments = []; }
+  try{
+    const s = await window.storage.get('settings', true);
+    DATA.settings = s ? JSON.parse(s.value) : { pricePer1000: 100, objectiveViews: 10000000 };
+  }catch(e){ DATA.settings = { pricePer1000: 100, objectiveViews: 10000000 }; }
+}
+async function saveClippers(){ try{ await window.storage.set('clippers', JSON.stringify(DATA.clippers), true); }catch(e){ showToast('Erreur de sauvegarde','error'); } }
+async function saveVideos(){ try{ await window.storage.set('videos', JSON.stringify(DATA.videos), true); }catch(e){ showToast('Erreur de sauvegarde','error'); } }
+async function savePayments(){ try{ await window.storage.set('payments', JSON.stringify(DATA.payments), true); }catch(e){ showToast('Erreur de sauvegarde','error'); } }
+async function saveSettingsData(){ try{ await window.storage.set('settings', JSON.stringify(DATA.settings), true); }catch(e){ showToast('Erreur de sauvegarde','error'); } }
+
+async function trySession(){
+  try{
+    const s = await window.storage.get('session', false);
+    if(s && s.value){ SESSION = JSON.parse(s.value); }
+  }catch(e){ SESSION = null; }
+}
+async function persistSession(){
+  try{ await window.storage.set('session', JSON.stringify(SESSION), false); }catch(e){}
+}
+async function clearSession(){
+  try{ await window.storage.delete('session', false); }catch(e){}
+}
+
+/* -------- computed helpers -------- */
+function clipperStats(clipperId){
+  const vids = DATA.videos.filter(v => v.clipperId === clipperId);
+  const validated = vids.filter(v => v.status === 'validated');
+  const views = validated.reduce((a,v)=>a + (v.views||0), 0);
+  const gains = views / 1000 * (DATA.settings.pricePer1000 || 0);
+  const paid = DATA.payments.filter(p => p.clipperId === clipperId).reduce((a,p)=>a+(p.amount||0),0);
+  return { vids, validated, views, gains, paid, remaining: Math.max(0, gains - paid) };
+}
+function allValidatedViews(){ return DATA.videos.filter(v=>v.status==='validated').reduce((a,v)=>a+(v.views||0),0); }
+function allGains(){ return allValidatedViews()/1000*(DATA.settings.pricePer1000||0); }
+function rankingList(){
+  return DATA.clippers.map(c=>{
+    const s = clipperStats(c.id);
+    return { ...c, views:s.views, videos:s.validated.length, gains:s.gains, paidFull: s.remaining<=0 && s.gains>0 };
+  }).sort((a,b)=>b.views-a.views);
+}
+function platformTag(p){
+  const map = { 'TikTok':'pink', 'YouTube':'coral', 'Autre':'blue' };
+  const color = 'var(--' + (map[p] || 'blue') + ')';
+  return `<span class="platform-tag" style="color:${color}; border-color:${color}66;">${p}</span>`;
+}
+function statusBadge(status){
+  if(status==='pending') return '<span class="badge badge-pending">En attente</span>';
+  if(status==='validated') return '<span class="badge badge-validated">Validé</span>';
+  return '<span class="badge badge-rejected">Rejeté</span>';
+}
+
+/* -------- LOGIN -------- */
+function setLoginTab(tab){
+  document.getElementById('tab-clipper').classList.toggle('active', tab==='clipper');
+  document.getElementById('tab-admin').classList.toggle('active', tab==='admin');
+  document.getElementById('clipper-login-block').style.display = tab==='clipper' ? 'block':'none';
+  document.getElementById('admin-login-block').style.display = tab==='admin' ? 'block':'none';
+}
+function refreshClipperSelect(){
+  const sel = document.getElementById('clipper-select');
+  sel.innerHTML = DATA.clippers.length ? DATA.clippers.map(c=>`<option value="${c.id}">${c.pseudo}</option>`).join('') : '<option value="">Aucun profil pour le moment</option>';
+}
+function toggleNewClipper(){
+  const el = document.getElementById('new-clipper-block');
+  el.style.display = el.style.display==='none' ? 'block':'none';
+}
+async function createClipper(){
+  const pseudo = document.getElementById('new-clipper-pseudo').value.trim();
+  if(!pseudo){ showToast('Entre un pseudo', 'error'); return; }
+  if(DATA.clippers.some(c=>c.pseudo.toLowerCase()===pseudo.toLowerCase())){ showToast('Ce pseudo existe déjà', 'error'); return; }
+  const c = { id: uid(), pseudo, joinedAt: new Date().toISOString() };
+  DATA.clippers.push(c);
+  await saveClippers();
+  refreshClipperSelect();
+  document.getElementById('clipper-select').value = c.id;
+  document.getElementById('new-clipper-pseudo').value = '';
+  toggleNewClipper();
+  showToast('Profil créé. Tu peux entrer dans ton espace.');
+}
+async function loginAsClipper(){
+  const id = document.getElementById('clipper-select').value;
+  if(!id){ showToast('Crée d\'abord un profil clipper', 'error'); return; }
+  const c = DATA.clippers.find(x=>x.id===id);
+  SESSION = { role:'clipper', clipperId: c.id, pseudo: c.pseudo };
+  await persistSession();
+  enterApp();
+}
+async function loginAsAdmin(){
+  const code = document.getElementById('admin-code').value.trim();
+  if(code !== 'alpdy2026'){ showToast('Code incorrect', 'error'); return; }
+  SESSION = { role:'admin', pseudo:'Manager' };
+  await persistSession();
+  enterApp();
+}
+async function logout(){
+  SESSION = null;
+  await clearSession();
+  document.getElementById('app').classList.remove('ready');
+  document.getElementById('login-screen').style.display = 'flex';
+  refreshClipperSelect();
+}
+
+/* -------- APP SHELL -------- */
+function enterApp(){
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').classList.add('ready');
+  document.getElementById('user-avatar').textContent = initials(SESSION.pseudo);
+  document.getElementById('user-name').textContent = SESSION.pseudo;
+  document.getElementById('user-role').textContent = SESSION.role==='admin' ? 'Administrateur' : 'Clipper';
+  document.getElementById('nav-admin').style.display = SESSION.role==='admin' ? 'block':'none';
+  document.getElementById('nav-clipper').style.display = SESSION.role==='clipper' ? 'block':'none';
+  showView(SESSION.role==='admin' ? 'dashboard' : 'c-dashboard');
+  renderAll();
+}
+
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  const target = document.getElementById('view-'+name);
+  if(target) target.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===name));
+  renderAll();
+}
+
+function renderAll(){
+  if(!SESSION) return;
+  renderRanking();
+  if(SESSION.role==='admin'){
+    renderAdminDashboard();
+    renderValidation();
+    renderClippersTable();
+    renderPayments();
+    document.getElementById('setting-price').value = DATA.settings.pricePer1000;
+    document.getElementById('setting-objective').value = DATA.settings.objectiveViews;
+  } else {
+    renderClipperDashboard();
+    renderClipperVideos();
+    renderClipperProfil();
+  }
+}
+
+/* -------- ADMIN VIEWS -------- */
+function renderAdminDashboard(){
+  const totalClippers = DATA.clippers.length;
+  const totalVideos = DATA.videos.length;
+  const pending = DATA.videos.filter(v=>v.status==='pending').length;
+  const validated = DATA.videos.filter(v=>v.status==='validated').length;
+  const rejected = DATA.videos.filter(v=>v.status==='rejected').length;
+  const views = allValidatedViews();
+  const gains = allGains();
+  const paidTotal = DATA.payments.reduce((a,p)=>a+(p.amount||0),0);
+  const remaining = Math.max(0, gains - paidTotal);
+
+  const stats = [
+    ['Clippers actifs', totalClippers, '◎', 'var(--violet)'],
+    ['Vidéos soumises', totalVideos, '▤', 'var(--blue)'],
+    ['En attente', pending, '⏳', 'var(--amber)'],
+    ['Validées', validated, '✓', 'var(--green)'],
+    ['Rejetées', rejected, '✕', 'var(--red)'],
+    ['Vues validées', fmtNum(views), '👁', 'var(--teal)'],
+    ['Gains générés', fmtMoney(gains), '◈', 'var(--coral)'],
+    ['Reste à payer', fmtMoney(remaining), '◈', 'var(--pink)'],
+  ];
+  document.getElementById('admin-stats').innerHTML = stats.map(([label,val,icon,color])=>`
+    <div class="card stat-card">
+      <div class="stat-label">${label}<span class="stat-icon" style="background:${color}22; color:${color};">${icon}</span></div>
+      <div class="stat-value">${val}</div>
+    </div>`).join('');
+
+  const recent = [...DATA.videos].sort((a,b)=>new Date(b.submittedAt)-new Date(a.submittedAt)).slice(0,6);
+  document.getElementById('recent-videos-body').innerHTML = recent.length ? recent.map(v=>{
+    const c = DATA.clippers.find(c=>c.id===v.clipperId);
+    return `<tr><td>${c?c.pseudo:'?'}</td><td>${v.title}</td><td>${platformTag(v.platform)}</td><td class="mono">${fmtNum(v.views)}</td><td>${statusBadge(v.status)}</td></tr>`;
+  }).join('') : `<tr><td colspan="5"><div class="empty-state">Aucune vidéo soumise pour le moment.</div></td></tr>`;
+
+  const obj = DATA.settings.objectiveViews || 1;
+  const pct = Math.min(100, Math.round(views/obj*100));
+  document.getElementById('admin-objective').innerHTML = `
+    <div style="font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:600; margin-bottom:8px;">${fmtNum(views)} / ${fmtNum(obj)}</div>
+    <div class="progress-track"><div class="progress-fill" style="width:${pct}%;"></div></div>
+    <div style="font-size:12.5px; color:var(--text-mid); margin-top:8px;">${pct}% de l'objectif collectif atteint</div>`;
+
+  const top = rankingList().slice(0,4);
+  document.getElementById('top-clippers-mini').innerHTML = top.length ? top.map((c,i)=>`
+    <div style="display:flex; align-items:center; gap:10px; padding:8px 0; ${i<top.length-1?'border-bottom:1px solid var(--border-soft);':''}">
+      <span class="rank-num">#${i+1}</span>
+      <div class="avatar" style="width:26px; height:26px; font-size:10px;">${initials(c.pseudo)}</div>
+      <div style="flex:1; font-size:13px; font-weight:500;">${c.pseudo}</div>
+      <div class="mono" style="font-size:12.5px; color:var(--text-mid);">${fmtNum(c.views)}</div>
+    </div>`).join('') : `<div class="empty-state">Pas encore de classement.</div>`;
+}
+
+function renderValidation(){
+  const rows = [...DATA.videos].sort((a,b)=>new Date(b.submittedAt)-new Date(a.submittedAt));
+  document.getElementById('validation-body').innerHTML = rows.length ? rows.map(v=>{
+    const c = DATA.clippers.find(c=>c.id===v.clipperId);
+    return `<tr>
+      <td>${c?c.pseudo:'?'}</td>
+      <td>${v.title}</td>
+      <td>${platformTag(v.platform)}</td>
+      <td class="mono">${fmtNum(v.views)}</td>
+      <td>${statusBadge(v.status)}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="openReview('${v.id}')">Examiner</button></td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="6"><div class="empty-state"><div class="ic">▤</div>Aucune vidéo à valider.</div></td></tr>`;
+}
+
+function openReview(videoId){
+  const v = DATA.videos.find(x=>x.id===videoId);
+  const c = DATA.clippers.find(x=>x.id===v.clipperId);
+  document.getElementById('modal-content').innerHTML = `
+    <h3>Examiner la vidéo</h3>
+    <div class="kv-row"><span class="k">Clipper</span><span class="v">${c?c.pseudo:'?'}</span></div>
+    <div class="kv-row"><span class="k">Titre</span><span class="v">${v.title}</span></div>
+    <div class="kv-row"><span class="k">Plateforme</span><span class="v">${v.platform}</span></div>
+    <div class="kv-row"><span class="k">Lien vidéo</span><span class="v" style="max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${v.url||'-'}</span></div>
+    <div class="kv-row"><span class="k">Preuve</span><span class="v" style="max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${v.proof||'-'}</span></div>
+    <div class="field" style="margin-top:16px;"><label class="field-label">Vues (modifiable)</label><input type="number" id="review-views" value="${v.views}"></div>
+    <div style="display:flex; gap:10px; margin-top:18px;">
+      <button class="btn btn-success" style="flex:1;" onclick="reviewDecision('${v.id}','validated')">Valider</button>
+      <button class="btn btn-danger" style="flex:1;" onclick="reviewDecision('${v.id}','rejected')">Rejeter</button>
+    </div>
+    <button class="btn btn-ghost" style="width:100%; margin-top:10px;" onclick="closeModal()">Fermer</button>
+  `;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+async function reviewDecision(videoId, status){
+  const v = DATA.videos.find(x=>x.id===videoId);
+  const newViews = parseInt(document.getElementById('review-views').value) || 0;
+  v.views = newViews;
+  v.status = status;
+  await saveVideos();
+  closeModal();
+  renderAll();
+  showToast(status==='validated' ? 'Vidéo validée.' : 'Vidéo rejetée.');
+}
+function closeModal(){ document.getElementById('modal-overlay').classList.remove('show'); }
+
+function renderClippersTable(){
+  const rows = rankingList();
+  document.getElementById('clippers-body').innerHTML = rows.length ? rows.map(c=>`
+    <tr><td>${c.pseudo}</td><td>${new Date(c.joinedAt).toLocaleDateString('fr-FR')}</td><td>${c.videos}</td><td class="mono">${fmtNum(c.views)}</td><td class="mono">${fmtMoney(c.gains)}</td></tr>
+  `).join('') : `<tr><td colspan="5"><div class="empty-state">Aucun clipper inscrit.</div></td></tr>`;
+}
+
+function renderPayments(){
+  document.getElementById('payments-body').innerHTML = DATA.clippers.length ? DATA.clippers.map(c=>{
+    const s = clipperStats(c.id);
+    const status = s.gains<=0 ? '<span class="badge badge-pending">Aucun gain</span>' : (s.remaining<=0 ? '<span class="badge badge-paid">✅ Paiement certifié</span>' : '<span class="badge badge-pending">Dû</span>');
+    return `<tr>
+      <td>${c.pseudo}</td>
+      <td class="mono">${fmtMoney(s.gains)}</td>
+      <td class="mono">${fmtMoney(s.paid)}</td>
+      <td class="mono">${fmtMoney(s.remaining)}</td>
+      <td>${status}</td>
+      <td>${s.remaining>0 ? `<button class="btn btn-success btn-sm" onclick="markPaid('${c.id}', ${s.remaining})">Marquer payé</button>` : '-'}</td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="6"><div class="empty-state">Aucun clipper.</div></td></tr>`;
+}
+async function markPaid(clipperId, amount){
+  DATA.payments.push({ id: uid(), clipperId, amount, date: new Date().toISOString(), verified:true });
+  await savePayments();
+  renderAll();
+  showToast('Paiement enregistré. ✅ Paiement vérifié.');
+}
+
+async function saveSettings(){
+  const price = parseFloat(document.getElementById('setting-price').value) || 0;
+  const obj = parseFloat(document.getElementById('setting-objective').value) || 0;
+  DATA.settings.pricePer1000 = price;
+  DATA.settings.objectiveViews = obj;
+  await saveSettingsData();
+  renderAll();
+  showToast('Paramètres enregistrés.');
+}
+
+function exportCSV(){
+  let csv = 'Pseudo;Vues validees;Videos validees;Gains (FCFA);Paye (FCFA);Restant (FCFA)\n';
+  rankingList().forEach(c=>{
+    const s = clipperStats(c.id);
+    csv += `${c.pseudo};${s.views};${s.validated.length};${Math.round(s.gains)};${Math.round(s.paid)};${Math.round(s.remaining)}\n`;
+  });
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'alpdy-agency-export.csv'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('Export CSV téléchargé.');
+}
+function exportPDF(){ window.print(); }
+
+/* -------- RANKING (shared view) -------- */
+function renderRanking(){
+  const list = rankingList();
+  const top3 = list.slice(0,3);
+  const order = [top3[1], top3[0], top3[2]];
+  const classes = ['p2','p1','p3'];
+  document.getElementById('podium').innerHTML = top3.length ? order.map((c,i)=>{
+    if(!c) return '';
+    return `<div class="podium-slot ${classes[i]}">
+      <div class="avatar">${initials(c.pseudo)}</div>
+      <div class="pname">${c.pseudo}</div>
+      <div class="pviews">${fmtNum(c.views)} vues</div>
+      <div class="podium-bar">${i===1?'🥇':i===0?'🥈':'🥉'}</div>
+    </div>`;
+  }).join('') : '';
+
+  document.getElementById('ranking-body').innerHTML = list.length ? list.map((c,i)=>`
+    <tr>
+      <td class="rank-num">#${i+1}</td>
+      <td style="display:flex; align-items:center; gap:9px;"><div class="avatar" style="width:26px; height:26px; font-size:10px;">${initials(c.pseudo)}</div>${c.pseudo}</td>
+      <td class="mono">${fmtNum(c.views)}</td>
+      <td>${c.videos}</td>
+      <td class="mono">${fmtMoney(c.gains)}</td>
+      <td>${c.paidFull ? '<span class="badge badge-paid">✅ Certifié</span>' : '<span class="badge badge-pending">En cours</span>'}</td>
+    </tr>`).join('') : `<tr><td colspan="6"><div class="empty-state">Aucun classement disponible pour le moment.</div></td></tr>`;
+
+  document.getElementById('global-views').textContent = fmtNum(allValidatedViews());
+  document.getElementById('global-gains').textContent = fmtMoney(allGains());
+}
+
+/* -------- CLIPPER VIEWS -------- */
+function renderClipperDashboard(){
+  const s = clipperStats(SESSION.clipperId);
+  document.getElementById('c-dash-title').textContent = 'Bonjour, ' + SESSION.pseudo;
+  const stats = [
+    ['Vidéos soumises', s.vids.length, '▤', 'var(--blue)'],
+    ['Vidéos validées', s.validated.length, '✓', 'var(--green)'],
+    ['Vues validées', fmtNum(s.views), '👁', 'var(--teal)'],
+    ['Gains totaux', fmtMoney(s.gains), '◈', 'var(--coral)'],
+  ];
+  document.getElementById('clipper-stats').innerHTML = stats.map(([label,val,icon,color])=>`
+    <div class="card stat-card">
+      <div class="stat-label">${label}<span class="stat-icon" style="background:${color}22; color:${color};">${icon}</span></div>
+      <div class="stat-value">${val}</div>
+    </div>`).join('');
+
+  const recent = [...s.vids].sort((a,b)=>new Date(b.submittedAt)-new Date(a.submittedAt)).slice(0,5);
+  document.getElementById('c-recent-videos').innerHTML = recent.length ? recent.map(v=>`
+    <tr><td>${v.title}</td><td>${platformTag(v.platform)}</td><td class="mono">${fmtNum(v.views)}</td><td>${statusBadge(v.status)}</td></tr>
+  `).join('') : `<tr><td colspan="4"><div class="empty-state">Tu n'as pas encore soumis de vidéo.</div></td></tr>`;
+
+  const views = allValidatedViews();
+  const obj = DATA.settings.objectiveViews || 1;
+  const pct = Math.min(100, Math.round(views/obj*100));
+  document.getElementById('clipper-objective').innerHTML = `
+    <div style="font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:600; margin-bottom:8px;">${fmtNum(views)} / ${fmtNum(obj)}</div>
+    <div class="progress-track"><div class="progress-fill" style="width:${pct}%;"></div></div>
+    <div style="font-size:12.5px; color:var(--text-mid); margin-top:8px;">Objectif collectif de l'agence — ${pct}% atteint</div>`;
+}
+
+async function submitVideo(){
+  const title = document.getElementById('sub-title').value.trim();
+  const platform = document.getElementById('sub-platform').value;
+  const url = document.getElementById('sub-url').value.trim();
+  const views = parseInt(document.getElementById('sub-views').value) || 0;
+  const proof = document.getElementById('sub-proof').value.trim();
+  if(!title || !url || !proof){ showToast('Merci de remplir le titre, l\'URL et la preuve.', 'error'); return; }
+  DATA.videos.push({ id: uid(), clipperId: SESSION.clipperId, title, platform, url, views, proof, status:'pending', submittedAt:new Date().toISOString() });
+  await saveVideos();
+  document.getElementById('sub-title').value='';
+  document.getElementById('sub-url').value='';
+  document.getElementById('sub-views').value='';
+  document.getElementById('sub-proof').value='';
+  showToast('Vidéo envoyée pour validation.');
+  showView('c-videos');
+}
+
+function renderClipperVideos(){
+  const vids = DATA.videos.filter(v=>v.clipperId===SESSION.clipperId).sort((a,b)=>new Date(b.submittedAt)-new Date(a.submittedAt));
+  document.getElementById('c-videos-body').innerHTML = vids.length ? vids.map(v=>`
+    <tr>
+      <td>${v.title}</td><td>${platformTag(v.platform)}</td><td class="mono">${fmtNum(v.views)}</td><td>${statusBadge(v.status)}</td>
+      <td>${v.status!=='pending' ? `<button class="btn btn-ghost btn-sm" onclick="editVideo('${v.id}')">Modifier les vues</button>` : ''}</td>
+    </tr>`).join('') : `<tr><td colspan="5"><div class="empty-state"><div class="ic">▤</div>Aucune vidéo soumise.</div></td></tr>`;
+}
+async function editVideo(videoId){
+  const v = DATA.videos.find(x=>x.id===videoId);
+  const val = prompt('Nouveau nombre de vues pour "'+v.title+'" :', v.views);
+  if(val===null) return;
+  const n = parseInt(val);
+  if(isNaN(n) || n<0){ showToast('Valeur invalide', 'error'); return; }
+  v.views = n;
+  v.status = 'pending';
+  await saveVideos();
+  renderAll();
+  showToast('Vue mise à jour. En attente de nouvelle vérification.');
+}
+
+function renderClipperProfil(){
+  const c = DATA.clippers.find(x=>x.id===SESSION.clipperId);
+  const s = clipperStats(SESSION.clipperId);
+  const rank = rankingList().findIndex(x=>x.id===SESSION.clipperId) + 1;
+  document.getElementById('profil-avatar').textContent = initials(c.pseudo);
+  document.getElementById('profil-pseudo').textContent = c.pseudo;
+  document.getElementById('profil-joined').textContent = 'Inscrit le ' + new Date(c.joinedAt).toLocaleDateString('fr-FR');
+  document.getElementById('profil-videos').textContent = s.vids.length;
+  document.getElementById('profil-views').textContent = fmtNum(s.views);
+  document.getElementById('profil-gains').textContent = fmtMoney(s.gains);
+  document.getElementById('profil-rank').textContent = '#' + rank;
+  document.getElementById('profil-paid').innerHTML = s.remaining<=0 && s.gains>0 ? '<span class="badge badge-paid">✅ Paiement certifié</span>' : '<span class="badge badge-pending">En cours</span>';
+
+  const pays = DATA.payments.filter(p=>p.clipperId===SESSION.clipperId).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  document.getElementById('profil-payments-body').innerHTML = pays.length ? pays.map(p=>`
+    <tr><td>${new Date(p.date).toLocaleDateString('fr-FR')}</td><td class="mono">${fmtMoney(p.amount)}</td><td><span class="badge badge-paid">✅ Vérifié</span></td></tr>
+  `).join('') : `<tr><td colspan="3"><div class="empty-state">Aucun paiement pour le moment.</div></td></tr>`;
+}
+
+/* -------- INIT -------- */
+(async function init(){
+  await loadAll();
+  refreshClipperSelect();
+  await trySession();
+  if(SESSION){
+    if(SESSION.role==='clipper' && !DATA.clippers.some(c=>c.id===SESSION.clipperId)){
+      SESSION = null; await clearSession();
+    } else {
+      enterApp();
+      return;
+    }
+  }
+  document.getElementById('login-screen').style.display = 'flex';
+})();
+</script>
+</body>
+</html>
