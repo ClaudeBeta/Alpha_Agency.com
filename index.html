@@ -108,6 +108,8 @@
     transition:.15s;
   }
   select:focus, input:focus, textarea:focus{ border-color:var(--violet); box-shadow:0 0 0 3px var(--violet-glow); }
+  input[type=file]{ width:100%; background:var(--bg-1); border:1px solid var(--border); color:var(--text-mid); padding:9px 11px; border-radius:9px; font-size:13px; font-family:'Inter',sans-serif; }
+  input[type=file]::file-selector-button{ background:var(--surface); border:1px solid var(--border); color:var(--text-hi); padding:6px 12px; border-radius:7px; font-size:12.5px; font-weight:600; margin-right:10px; cursor:pointer; }
   .field{ margin-bottom:16px; }
 
   .btn{
@@ -151,6 +153,9 @@
   .user-chip .role{ font-size:11px; color:var(--text-low); }
   .logout-link{ font-size:12px; color:var(--text-low); cursor:pointer; margin-top:8px; padding:0 8px; display:block; }
   .logout-link:hover{ color:var(--red); }
+  .sync-status{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-low); padding:8px 8px 0; }
+  .sync-dot{ width:7px; height:7px; border-radius:50%; background:var(--green); flex-shrink:0; box-shadow:0 0 0 0 rgba(46,212,122,0.5); animation:pulse-dot 2s infinite; }
+  @keyframes pulse-dot{ 0%{ box-shadow:0 0 0 0 rgba(46,212,122,0.45); } 70%{ box-shadow:0 0 0 6px rgba(46,212,122,0); } 100%{ box-shadow:0 0 0 0 rgba(46,212,122,0); } }
 
   #main{ flex:1; padding:28px 34px; max-width:1180px; }
   .page-head{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
@@ -260,13 +265,19 @@
 
     <div id="clipper-login-block">
       <div class="field">
-        <label class="field-label">Choisir mon profil</label>
+        <label class="field-label">Mon pseudo</label>
         <select id="clipper-select"></select>
+      </div>
+      <div class="field">
+        <label class="field-label">Mot de passe</label>
+        <input type="text" id="clipper-password" placeholder="Ton mot de passe">
       </div>
       <button class="btn btn-primary" onclick="loginAsClipper()">Entrer dans l'espace</button>
       <div class="hint">Nouveau ici ? <span style="color:var(--violet); cursor:pointer;" onclick="toggleNewClipper()">Créer un profil clipper</span></div>
       <div id="new-clipper-block" style="display:none; margin-top:16px;">
         <div class="field"><label class="field-label">Pseudo</label><input type="text" id="new-clipper-pseudo" placeholder="Ex : ClipMaster"></div>
+        <div class="field"><label class="field-label">Email (optionnel)</label><input type="text" id="new-clipper-email" placeholder="toi@exemple.com"></div>
+        <div class="field"><label class="field-label">Mot de passe</label><input type="text" id="new-clipper-password" placeholder="Choisis un mot de passe"></div>
         <button class="btn btn-ghost" style="width:100%;" onclick="createClipper()">Créer le profil</button>
       </div>
     </div>
@@ -297,6 +308,7 @@
       <div class="nav-item active" data-view="c-dashboard" onclick="showView('c-dashboard')"><span class="ic">◆</span>Dashboard</div>
       <div class="nav-item" data-view="c-submit" onclick="showView('c-submit')"><span class="ic">+</span>Soumettre</div>
       <div class="nav-item" data-view="c-videos" onclick="showView('c-videos')"><span class="ic">▤</span>Mes vidéos</div>
+      <div class="nav-item" data-view="c-team" onclick="showView('c-team')"><span class="ic">◎</span>Équipe</div>
       <div class="nav-item" data-view="classement" onclick="showView('classement')"><span class="ic">🏆</span>Classement</div>
       <div class="nav-item" data-view="c-profil" onclick="showView('c-profil')"><span class="ic">◎</span>Profil</div>
     </div>
@@ -306,6 +318,7 @@
         <div class="avatar" id="user-avatar">?</div>
         <div><div class="name" id="user-name">-</div><div class="role" id="user-role">-</div></div>
       </div>
+      <div class="sync-status" id="sync-status"><span class="sync-dot"></span>Synchronisé à l'instant</div>
       <div class="logout-link" onclick="logout()">↩ Changer de compte</div>
     </div>
   </div>
@@ -345,9 +358,12 @@
 
     <!-- ADMIN CLIPPERS -->
     <div class="view" id="view-clippers">
-      <div class="page-head"><div><h2>Clippers</h2><p>Tous les membres de l'équipe.</p></div></div>
+      <div class="page-head">
+        <div><h2>Clippers</h2><p>Tous les membres de l'équipe.</p></div>
+        <button class="btn btn-primary" style="width:auto;" onclick="openAddClipper()">+ Ajouter un clipper</button>
+      </div>
       <div class="card">
-        <table><thead><tr><th>Pseudo</th><th>Inscrit le</th><th>Vidéos validées</th><th>Vues validées</th><th>Gains</th></tr></thead><tbody id="clippers-body"></tbody></table>
+        <table><thead><tr><th>Pseudo</th><th>Inscrit le</th><th>Vidéos validées</th><th>Vues validées</th><th>Gains</th><th></th></tr></thead><tbody id="clippers-body"></tbody></table>
       </div>
     </div>
 
@@ -422,7 +438,12 @@
         </div>
         <div class="field"><label class="field-label">URL de la vidéo</label><input type="url" id="sub-url" placeholder="https://..."></div>
         <div class="field"><label class="field-label">Nombre de vues obtenu</label><input type="number" id="sub-views" placeholder="0"></div>
-        <div class="field"><label class="field-label">Preuve (lien capture d'écran ou description)</label><textarea id="sub-proof" rows="3" placeholder="Lien vers la capture d'écran ou description de la preuve"></textarea></div>
+        <div class="field"><label class="field-label">Preuve (capture d'écran)</label>
+          <input type="file" accept="image/*" id="sub-proof-file" onchange="handleProofFileChange(event)">
+          <div id="sub-proof-preview" style="margin-top:8px;"></div>
+          <div style="font-size:11.5px; color:var(--text-low); margin-top:6px;">L'image est compressée automatiquement. Limite ~3-4 Mo par preuve.</div>
+        </div>
+        <div class="field"><label class="field-label">Note (optionnel)</label><input type="text" id="sub-proof-note" placeholder="Précision sur la preuve"></div>
         <button class="btn btn-primary" onclick="submitVideo()">Envoyer pour validation</button>
       </div>
     </div>
@@ -455,6 +476,20 @@
           <table><thead><tr><th>Date</th><th>Montant</th><th>Statut</th></tr></thead><tbody id="profil-payments-body"></tbody></table>
         </div>
       </div>
+      <div class="card" style="max-width:420px; margin-top:14px;">
+        <div class="card-title">Mes identifiants</div>
+        <div class="field"><label class="field-label">Email</label><input type="text" id="profil-email-input" placeholder="toi@exemple.com"></div>
+        <div class="field"><label class="field-label">Nouveau mot de passe (laisser vide pour ne pas changer)</label><input type="text" id="profil-password-input" placeholder="Nouveau mot de passe"></div>
+        <button class="btn btn-primary" onclick="updateOwnAccount()">Enregistrer</button>
+      </div>
+    </div>
+
+    <!-- CLIPPER TEAM -->
+    <div class="view" id="view-c-team">
+      <div class="page-head"><div><h2>Équipe</h2><p>Tous les clippers inscrits à l'agence et leurs performances.</p></div></div>
+      <div class="card">
+        <table><thead><tr><th>Pseudo</th><th>Inscrit le</th><th>Vidéos validées</th><th>Vues validées</th><th>Gains</th><th>Paiement</th><th></th></tr></thead><tbody id="c-team-body"></tbody></table>
+      </div>
     </div>
 
   </div>
@@ -469,6 +504,89 @@
 <script>
 let DATA = { clippers: [], videos: [], payments: [], settings: { pricePer1000: 100, objectiveViews: 10000000 } };
 let SESSION = null;
+let currentProofDataUrl = null;
+const MAX_PROOF_CHARS = 3.5 * 1024 * 1024;
+
+function compressImage(file){
+  return new Promise((resolve, reject)=>{
+    if(!file.type || !file.type.startsWith('image/')){ reject(new Error('Merci de choisir un fichier image.')); return; }
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Lecture du fichier impossible.'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Fichier image invalide.'));
+      img.onload = () => {
+        const attempts = [ {maxW:1600,q:0.82}, {maxW:1600,q:0.6}, {maxW:1200,q:0.55}, {maxW:1000,q:0.5}, {maxW:800,q:0.45}, {maxW:600,q:0.4} ];
+        let best = null;
+        for(const a of attempts){
+          const scale = Math.min(1, a.maxW / img.width);
+          const w = Math.max(1, Math.round(img.width * scale));
+          const h = Math.max(1, Math.round(img.height * scale));
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          const dataUrl = canvas.toDataURL('image/jpeg', a.q);
+          best = dataUrl;
+          if(dataUrl.length <= MAX_PROOF_CHARS){ resolve(dataUrl); return; }
+        }
+        reject(new Error('Image trop volumineuse même après compression. Essaie une capture plus légère.'));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleProofFileChange(e){
+  const file = e.target.files[0];
+  const preview = document.getElementById('sub-proof-preview');
+  currentProofDataUrl = null;
+  if(!file){ preview.innerHTML=''; return; }
+  preview.innerHTML = '<div style="font-size:12.5px; color:var(--text-mid);">Compression de l\'image...</div>';
+  try{
+    const dataUrl = await compressImage(file);
+    currentProofDataUrl = dataUrl;
+    const sizeKB = Math.round(dataUrl.length * 0.75 / 1024);
+    preview.innerHTML = `<img src="${dataUrl}" style="max-width:100%; max-height:180px; border-radius:8px; border:1px solid var(--border-soft); display:block;"><div style="font-size:11.5px; color:var(--text-low); margin-top:4px;">${sizeKB} Ko après compression</div>`;
+  }catch(err){
+    preview.innerHTML = `<div style="font-size:12.5px; color:var(--red);">${err.message}</div>`;
+    e.target.value = '';
+  }
+}
+
+/* -------- SUPABASE CONNECTION -------- */
+const SUPABASE_URL = 'https://jgikbbgnuspxqqspwxuu.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_0isgKQa_oqvKACrnP8bTTg_e_z6ACH7';
+const REST = SUPABASE_URL + '/rest/v1';
+const sbHeaders = { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' };
+
+async function sbGet(table, query){
+  const res = await fetch(`${REST}/${table}?select=*${query || ''}`, { headers: sbHeaders });
+  if(!res.ok) throw new Error('Erreur de chargement (' + table + ')');
+  return await res.json();
+}
+async function sbInsert(table, row){
+  const res = await fetch(`${REST}/${table}`, { method:'POST', headers: {...sbHeaders, 'Prefer':'return=representation'}, body: JSON.stringify(row) });
+  if(!res.ok) throw new Error('Erreur d\'insertion (' + table + ')');
+  const data = await res.json();
+  return data[0];
+}
+async function sbUpdate(table, id, patch){
+  const res = await fetch(`${REST}/${table}?id=eq.${id}`, { method:'PATCH', headers: {...sbHeaders, 'Prefer':'return=representation'}, body: JSON.stringify(patch) });
+  if(!res.ok) throw new Error('Erreur de mise à jour (' + table + ')');
+  const data = await res.json();
+  return data[0];
+}
+async function sbDelete(table, id){
+  const res = await fetch(`${REST}/${table}?id=eq.${id}`, { method:'DELETE', headers: sbHeaders });
+  if(!res.ok) throw new Error('Erreur de suppression (' + table + ')');
+}
+
+function mapClipper(r){ return { id:r.id, pseudo:r.pseudo, email:r.email||'', password:r.password, joinedAt:r.joined_at }; }
+function mapVideo(r){ return { id:r.id, clipperId:r.clipper_id, title:r.title, platform:r.platform, url:r.url, views:r.views||0, note:r.note||'', proofImage:r.proof_image||null, status:r.status, submittedAt:r.submitted_at }; }
+function mapPayment(r){ return { id:r.id, clipperId:r.clipper_id, amount:r.amount, date:r.date, verified:r.verified }; }
+function mapSettings(r){ return { pricePer1000:r.price_per_1000, objectiveViews:r.objective_views }; }
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function fmtMoney(n){ n = Math.round(n||0); return n.toLocaleString('fr-FR').replace(/,/g,' ').replace(/\u00A0/g,' ') + ' FCFA'; }
@@ -481,27 +599,14 @@ function showToast(msg, type){
 }
 
 async function loadAll(){
+  try{ DATA.clippers = (await sbGet('clippers')).map(mapClipper); }catch(e){ console.error(e); DATA.clippers = DATA.clippers || []; }
+  try{ DATA.videos = (await sbGet('videos')).map(mapVideo); }catch(e){ console.error(e); DATA.videos = DATA.videos || []; }
+  try{ DATA.payments = (await sbGet('payments')).map(mapPayment); }catch(e){ console.error(e); DATA.payments = DATA.payments || []; }
   try{
-    const c = await window.storage.get('clippers', true);
-    DATA.clippers = c ? JSON.parse(c.value) : [];
-  }catch(e){ DATA.clippers = []; }
-  try{
-    const v = await window.storage.get('videos', true);
-    DATA.videos = v ? JSON.parse(v.value) : [];
-  }catch(e){ DATA.videos = []; }
-  try{
-    const p = await window.storage.get('payments', true);
-    DATA.payments = p ? JSON.parse(p.value) : [];
-  }catch(e){ DATA.payments = []; }
-  try{
-    const s = await window.storage.get('settings', true);
-    DATA.settings = s ? JSON.parse(s.value) : { pricePer1000: 100, objectiveViews: 10000000 };
-  }catch(e){ DATA.settings = { pricePer1000: 100, objectiveViews: 10000000 }; }
+    const rows = await sbGet('settings', '&id=eq.1');
+    DATA.settings = rows[0] ? mapSettings(rows[0]) : { pricePer1000:100, objectiveViews:10000000 };
+  }catch(e){ console.error(e); DATA.settings = DATA.settings || { pricePer1000:100, objectiveViews:10000000 }; }
 }
-async function saveClippers(){ try{ await window.storage.set('clippers', JSON.stringify(DATA.clippers), true); }catch(e){ showToast('Erreur de sauvegarde','error'); } }
-async function saveVideos(){ try{ await window.storage.set('videos', JSON.stringify(DATA.videos), true); }catch(e){ showToast('Erreur de sauvegarde','error'); } }
-async function savePayments(){ try{ await window.storage.set('payments', JSON.stringify(DATA.payments), true); }catch(e){ showToast('Erreur de sauvegarde','error'); } }
-async function saveSettingsData(){ try{ await window.storage.set('settings', JSON.stringify(DATA.settings), true); }catch(e){ showToast('Erreur de sauvegarde','error'); } }
 
 async function trySession(){
   try{
@@ -561,23 +666,34 @@ function toggleNewClipper(){
 }
 async function createClipper(){
   const pseudo = document.getElementById('new-clipper-pseudo').value.trim();
+  const email = document.getElementById('new-clipper-email').value.trim();
+  const password = document.getElementById('new-clipper-password').value;
   if(!pseudo){ showToast('Entre un pseudo', 'error'); return; }
+  if(!password || password.length < 4){ showToast('Choisis un mot de passe d\'au moins 4 caractères', 'error'); return; }
   if(DATA.clippers.some(c=>c.pseudo.toLowerCase()===pseudo.toLowerCase())){ showToast('Ce pseudo existe déjà', 'error'); return; }
-  const c = { id: uid(), pseudo, joinedAt: new Date().toISOString() };
-  DATA.clippers.push(c);
-  await saveClippers();
-  refreshClipperSelect();
-  document.getElementById('clipper-select').value = c.id;
-  document.getElementById('new-clipper-pseudo').value = '';
-  toggleNewClipper();
-  showToast('Profil créé. Tu peux entrer dans ton espace.');
+  try{
+    const row = await sbInsert('clippers', { pseudo, email: email || null, password, joined_at: new Date().toISOString() });
+    const c = mapClipper(row);
+    DATA.clippers.push(c);
+    refreshClipperSelect();
+    document.getElementById('clipper-select').value = c.id;
+    document.getElementById('new-clipper-pseudo').value = '';
+    document.getElementById('new-clipper-email').value = '';
+    document.getElementById('new-clipper-password').value = '';
+    toggleNewClipper();
+    showToast('Profil créé. Connecte-toi avec ton mot de passe.');
+  }catch(e){ showToast('Impossible de créer le profil (' + e.message + ')', 'error'); }
 }
 async function loginAsClipper(){
   const id = document.getElementById('clipper-select').value;
+  const password = document.getElementById('clipper-password').value;
   if(!id){ showToast('Crée d\'abord un profil clipper', 'error'); return; }
   const c = DATA.clippers.find(x=>x.id===id);
+  if(!c){ showToast('Profil introuvable', 'error'); return; }
+  if((c.password || '') !== password){ showToast('Mot de passe incorrect', 'error'); return; }
   SESSION = { role:'clipper', clipperId: c.id, pseudo: c.pseudo };
   await persistSession();
+  document.getElementById('clipper-password').value = '';
   enterApp();
 }
 async function loginAsAdmin(){
@@ -590,6 +706,7 @@ async function loginAsAdmin(){
 async function logout(){
   SESSION = null;
   await clearSession();
+  stopSync();
   document.getElementById('app').classList.remove('ready');
   document.getElementById('login-screen').style.display = 'flex';
   refreshClipperSelect();
@@ -606,6 +723,7 @@ function enterApp(){
   document.getElementById('nav-clipper').style.display = SESSION.role==='clipper' ? 'block':'none';
   showView(SESSION.role==='admin' ? 'dashboard' : 'c-dashboard');
   renderAll();
+  startSync();
 }
 
 function showView(name){
@@ -614,6 +732,14 @@ function showView(name){
   if(target) target.classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===name));
   renderAll();
+  if(name==='parametres'){
+    document.getElementById('setting-price').value = DATA.settings.pricePer1000;
+    document.getElementById('setting-objective').value = DATA.settings.objectiveViews;
+  }
+  if(name==='c-profil' && SESSION && SESSION.role==='clipper'){
+    const c = DATA.clippers.find(x=>x.id===SESSION.clipperId);
+    if(c) document.getElementById('profil-email-input').value = c.email || '';
+  }
 }
 
 function renderAll(){
@@ -622,14 +748,13 @@ function renderAll(){
   if(SESSION.role==='admin'){
     renderAdminDashboard();
     renderValidation();
-    renderClippersTable();
+    renderClippersDirectory('clippers-body', true);
     renderPayments();
-    document.getElementById('setting-price').value = DATA.settings.pricePer1000;
-    document.getElementById('setting-objective').value = DATA.settings.objectiveViews;
   } else {
     renderClipperDashboard();
     renderClipperVideos();
     renderClipperProfil();
+    renderClippersDirectory('c-team-body', false);
   }
 }
 
@@ -702,13 +827,21 @@ function renderValidation(){
 function openReview(videoId){
   const v = DATA.videos.find(x=>x.id===videoId);
   const c = DATA.clippers.find(x=>x.id===v.clipperId);
+  const proofHtml = v.proofImage
+    ? `<img src="${v.proofImage}" style="max-width:100%; max-height:220px; border-radius:8px; border:1px solid var(--border-soft); cursor:zoom-in;" onclick="this.style.maxHeight = this.style.maxHeight==='520px' ? '220px' : '520px';">`
+    : '<div style="font-size:12.5px; color:var(--text-low);">Aucune preuve disponible.</div>';
+  renderReviewModal(v, c, proofHtml);
+  document.getElementById('modal-overlay').classList.add('show');
+}
+function renderReviewModal(v, c, proofHtml){
   document.getElementById('modal-content').innerHTML = `
     <h3>Examiner la vidéo</h3>
     <div class="kv-row"><span class="k">Clipper</span><span class="v">${c?c.pseudo:'?'}</span></div>
     <div class="kv-row"><span class="k">Titre</span><span class="v">${v.title}</span></div>
     <div class="kv-row"><span class="k">Plateforme</span><span class="v">${v.platform}</span></div>
     <div class="kv-row"><span class="k">Lien vidéo</span><span class="v" style="max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${v.url||'-'}</span></div>
-    <div class="kv-row"><span class="k">Preuve</span><span class="v" style="max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${v.proof||'-'}</span></div>
+    ${v.note ? `<div class="kv-row"><span class="k">Note</span><span class="v">${v.note}</span></div>` : ''}
+    <div style="margin:14px 0;"><div class="field-label" style="margin-bottom:8px;">Preuve (capture d'écran)</div>${proofHtml}</div>
     <div class="field" style="margin-top:16px;"><label class="field-label">Vues (modifiable)</label><input type="number" id="review-views" value="${v.views}"></div>
     <div style="display:flex; gap:10px; margin-top:18px;">
       <button class="btn btn-success" style="flex:1;" onclick="reviewDecision('${v.id}','validated')">Valider</button>
@@ -716,25 +849,140 @@ function openReview(videoId){
     </div>
     <button class="btn btn-ghost" style="width:100%; margin-top:10px;" onclick="closeModal()">Fermer</button>
   `;
+}
+function viewProof(videoId){
+  const v = DATA.videos.find(x=>x.id===videoId);
+  document.getElementById('modal-content').innerHTML = `<h3>Preuve</h3>${v && v.proofImage ? `<img src="${v.proofImage}" style="max-width:100%; border-radius:8px; border:1px solid var(--border-soft);">` : '<div class="empty-state">Aucune preuve disponible.</div>'}<button class="btn btn-ghost" style="width:100%; margin-top:14px;" onclick="closeModal()">Fermer</button>`;
   document.getElementById('modal-overlay').classList.add('show');
 }
 async function reviewDecision(videoId, status){
   const v = DATA.videos.find(x=>x.id===videoId);
   const newViews = parseInt(document.getElementById('review-views').value) || 0;
-  v.views = newViews;
-  v.status = status;
-  await saveVideos();
-  closeModal();
-  renderAll();
-  showToast(status==='validated' ? 'Vidéo validée.' : 'Vidéo rejetée.');
+  try{
+    await sbUpdate('videos', videoId, { views:newViews, status });
+    v.views = newViews;
+    v.status = status;
+    closeModal();
+    renderAll();
+    showToast(status==='validated' ? 'Vidéo validée.' : 'Vidéo rejetée.');
+  }catch(e){ showToast('Erreur lors de la mise à jour', 'error'); }
 }
 function closeModal(){ document.getElementById('modal-overlay').classList.remove('show'); }
 
-function renderClippersTable(){
+function renderClippersDirectory(tbodyId, allowRemove){
   const rows = rankingList();
-  document.getElementById('clippers-body').innerHTML = rows.length ? rows.map(c=>`
-    <tr><td>${c.pseudo}</td><td>${new Date(c.joinedAt).toLocaleDateString('fr-FR')}</td><td>${c.videos}</td><td class="mono">${fmtNum(c.views)}</td><td class="mono">${fmtMoney(c.gains)}</td></tr>
-  `).join('') : `<tr><td colspan="5"><div class="empty-state">Aucun clipper inscrit.</div></td></tr>`;
+  const el = document.getElementById(tbodyId);
+  if(!el) return;
+  el.innerHTML = rows.length ? rows.map(c=>`
+    <tr>
+      <td style="display:flex; align-items:center; gap:9px;"><div class="avatar" style="width:26px; height:26px; font-size:10px;">${initials(c.pseudo)}</div>${c.pseudo}</td>
+      <td>${new Date(c.joinedAt).toLocaleDateString('fr-FR')}</td>
+      <td>${c.videos}</td>
+      <td class="mono">${fmtNum(c.views)}</td>
+      <td class="mono">${fmtMoney(c.gains)}</td>
+      ${allowRemove ? '' : `<td>${c.paidFull && c.gains>0 ? '<span class="badge badge-paid">✅ Certifié</span>' : '<span class="badge badge-pending">En cours</span>'}</td>`}
+      <td style="display:flex; gap:6px; flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" onclick="openClipperProfile('${c.id}')">Voir profil</button>
+        ${allowRemove ? `<button class="btn btn-danger btn-sm" onclick="confirmRemoveClipper('${c.id}')">Retirer</button>` : ''}
+      </td>
+    </tr>
+  `).join('') : `<tr><td colspan="7"><div class="empty-state">Aucun clipper inscrit.</div></td></tr>`;
+}
+
+async function openClipperProfile(clipperId){
+  const c = DATA.clippers.find(x=>x.id===clipperId);
+  if(!c) return;
+  const s = clipperStats(clipperId);
+  const rank = rankingList().findIndex(x=>x.id===clipperId) + 1;
+  const recent = [...s.vids].sort((a,b)=>new Date(b.submittedAt)-new Date(a.submittedAt)).slice(0,5);
+  document.getElementById('modal-content').innerHTML = `
+    <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+      <div class="avatar" style="width:48px; height:48px; font-size:17px;">${initials(c.pseudo)}</div>
+      <div><div style="font-weight:600; font-size:17px;">${c.pseudo}</div><div style="font-size:12.5px; color:var(--text-mid);">Inscrit le ${new Date(c.joinedAt).toLocaleDateString('fr-FR')}</div></div>
+    </div>
+    <div class="kv-row"><span class="k">Classement</span><span class="v">#${rank}</span></div>
+    ${SESSION.role==='admin' && c.email ? `<div class="kv-row"><span class="k">Email</span><span class="v">${c.email}</span></div>` : ''}
+    <div class="kv-row"><span class="k">Vidéos soumises</span><span class="v">${s.vids.length}</span></div>
+    <div class="kv-row"><span class="k">Vidéos validées</span><span class="v">${s.validated.length}</span></div>
+    <div class="kv-row"><span class="k">Vues validées</span><span class="v">${fmtNum(s.views)}</span></div>
+    <div class="kv-row"><span class="k">Gains totaux</span><span class="v">${fmtMoney(s.gains)}</span></div>
+    <div class="kv-row"><span class="k">Statut paiement</span><span class="v">${s.remaining<=0 && s.gains>0 ? '✅ Paiement certifié' : 'En cours'}</span></div>
+    <div class="card-title" style="margin-top:16px;">Vidéos récentes</div>
+    ${recent.length ? recent.map(v=>`
+      <div class="kv-row"><span class="k">${v.title}</span><span class="v">${statusBadge(v.status)}</span></div>
+    `).join('') : '<p style="color:var(--text-mid); font-size:13px;">Aucune vidéo soumise.</p>'}
+    ${SESSION.role==='admin' ? `<button class="btn btn-ghost" style="width:100%; margin-top:16px;" onclick="resetClipperPassword('${c.id}')">Réinitialiser le mot de passe</button>` : ''}
+    <button class="btn btn-ghost" style="width:100%; margin-top:10px;" onclick="closeModal()">Fermer</button>
+  `;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+async function resetClipperPassword(clipperId){
+  const c = DATA.clippers.find(x=>x.id===clipperId);
+  if(!c) return;
+  const newPass = prompt('Nouveau mot de passe pour "'+c.pseudo+'" :');
+  if(newPass===null) return;
+  if(newPass.length < 4){ showToast('Le mot de passe doit faire au moins 4 caractères', 'error'); return; }
+  try{
+    await sbUpdate('clippers', clipperId, { password:newPass });
+    c.password = newPass;
+    showToast('Mot de passe réinitialisé. Communique-le à ' + c.pseudo + '.');
+  }catch(e){ showToast('Erreur lors de la réinitialisation', 'error'); }
+}
+
+function openAddClipper(){
+  document.getElementById('modal-content').innerHTML = `
+    <h3>Ajouter un clipper</h3>
+    <div class="field"><label class="field-label">Pseudo</label><input type="text" id="admin-new-clipper-pseudo" placeholder="Ex : ClipMaster"></div>
+    <div class="field"><label class="field-label">Email (optionnel)</label><input type="text" id="admin-new-clipper-email" placeholder="contact@exemple.com"></div>
+    <div class="field"><label class="field-label">Mot de passe initial</label><input type="text" id="admin-new-clipper-password" placeholder="À communiquer au clipper"></div>
+    <button class="btn btn-primary" style="width:100%;" onclick="addClipperFromAdmin()">Créer le profil</button>
+    <button class="btn btn-ghost" style="width:100%; margin-top:10px;" onclick="closeModal()">Annuler</button>
+  `;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+async function addClipperFromAdmin(){
+  const pseudo = document.getElementById('admin-new-clipper-pseudo').value.trim();
+  const email = document.getElementById('admin-new-clipper-email').value.trim();
+  const password = document.getElementById('admin-new-clipper-password').value;
+  if(!pseudo){ showToast('Entre un pseudo', 'error'); return; }
+  if(!password || password.length < 4){ showToast('Choisis un mot de passe d\'au moins 4 caractères', 'error'); return; }
+  if(DATA.clippers.some(c=>c.pseudo.toLowerCase()===pseudo.toLowerCase())){ showToast('Ce pseudo existe déjà', 'error'); return; }
+  try{
+    const row = await sbInsert('clippers', { pseudo, email: email || null, password, joined_at: new Date().toISOString() });
+    DATA.clippers.push(mapClipper(row));
+    refreshClipperSelect();
+    closeModal();
+    renderAll();
+    showToast('Clipper ajouté. Communique-lui son mot de passe.');
+  }catch(e){ showToast('Impossible d\'ajouter le clipper (' + e.message + ')', 'error'); }
+}
+
+function confirmRemoveClipper(clipperId){
+  const c = DATA.clippers.find(x=>x.id===clipperId);
+  if(!c) return;
+  document.getElementById('modal-content').innerHTML = `
+    <h3>Retirer ce clipper ?</h3>
+    <p style="color:var(--text-mid); font-size:13.5px; margin-bottom:16px;">
+      <strong style="color:var(--text-hi);">${c.pseudo}</strong> sera définitivement retiré du programme, avec ${DATA.videos.filter(v=>v.clipperId===clipperId).length} vidéo(s) et ${DATA.payments.filter(p=>p.clipperId===clipperId).length} paiement(s) associés. Cette action est irréversible.
+    </p>
+    <div style="display:flex; gap:10px;">
+      <button class="btn btn-danger" style="flex:1;" onclick="removeClipper('${clipperId}')">Confirmer le retrait</button>
+      <button class="btn btn-ghost" style="flex:1;" onclick="closeModal()">Annuler</button>
+    </div>
+  `;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+async function removeClipper(clipperId){
+  try{
+    await sbDelete('clippers', clipperId);
+    DATA.clippers = DATA.clippers.filter(c=>c.id!==clipperId);
+    DATA.videos = DATA.videos.filter(v=>v.clipperId!==clipperId);
+    DATA.payments = DATA.payments.filter(p=>p.clipperId!==clipperId);
+    refreshClipperSelect();
+    closeModal();
+    renderAll();
+    showToast('Clipper retiré du programme.');
+  }catch(e){ showToast('Erreur lors du retrait', 'error'); }
 }
 
 function renderPayments(){
@@ -752,20 +1000,24 @@ function renderPayments(){
   }).join('') : `<tr><td colspan="6"><div class="empty-state">Aucun clipper.</div></td></tr>`;
 }
 async function markPaid(clipperId, amount){
-  DATA.payments.push({ id: uid(), clipperId, amount, date: new Date().toISOString(), verified:true });
-  await savePayments();
-  renderAll();
-  showToast('Paiement enregistré. ✅ Paiement vérifié.');
+  try{
+    const row = await sbInsert('payments', { clipper_id:clipperId, amount, date:new Date().toISOString(), verified:true });
+    DATA.payments.push(mapPayment(row));
+    renderAll();
+    showToast('Paiement enregistré. ✅ Paiement vérifié.');
+  }catch(e){ showToast('Erreur lors de l\'enregistrement du paiement', 'error'); }
 }
 
 async function saveSettings(){
   const price = parseFloat(document.getElementById('setting-price').value) || 0;
   const obj = parseFloat(document.getElementById('setting-objective').value) || 0;
-  DATA.settings.pricePer1000 = price;
-  DATA.settings.objectiveViews = obj;
-  await saveSettingsData();
-  renderAll();
-  showToast('Paramètres enregistrés.');
+  try{
+    await sbUpdate('settings', 1, { price_per_1000:price, objective_views:obj });
+    DATA.settings.pricePer1000 = price;
+    DATA.settings.objectiveViews = obj;
+    renderAll();
+    showToast('Paramètres enregistrés.');
+  }catch(e){ showToast('Erreur lors de l\'enregistrement', 'error'); }
 }
 
 function exportCSV(){
@@ -848,16 +1100,24 @@ async function submitVideo(){
   const platform = document.getElementById('sub-platform').value;
   const url = document.getElementById('sub-url').value.trim();
   const views = parseInt(document.getElementById('sub-views').value) || 0;
-  const proof = document.getElementById('sub-proof').value.trim();
-  if(!title || !url || !proof){ showToast('Merci de remplir le titre, l\'URL et la preuve.', 'error'); return; }
-  DATA.videos.push({ id: uid(), clipperId: SESSION.clipperId, title, platform, url, views, proof, status:'pending', submittedAt:new Date().toISOString() });
-  await saveVideos();
-  document.getElementById('sub-title').value='';
-  document.getElementById('sub-url').value='';
-  document.getElementById('sub-views').value='';
-  document.getElementById('sub-proof').value='';
-  showToast('Vidéo envoyée pour validation.');
-  showView('c-videos');
+  const note = document.getElementById('sub-proof-note').value.trim();
+  if(!title || !url || !currentProofDataUrl){ showToast('Merci de remplir le titre, l\'URL et d\'ajouter une capture d\'écran.', 'error'); return; }
+  try{
+    const row = await sbInsert('videos', {
+      clipper_id: SESSION.clipperId, title, platform, url, views, note: note || null,
+      proof_image: currentProofDataUrl, status:'pending', submitted_at:new Date().toISOString()
+    });
+    DATA.videos.push(mapVideo(row));
+    document.getElementById('sub-title').value='';
+    document.getElementById('sub-url').value='';
+    document.getElementById('sub-views').value='';
+    document.getElementById('sub-proof-note').value='';
+    document.getElementById('sub-proof-file').value='';
+    document.getElementById('sub-proof-preview').innerHTML='';
+    currentProofDataUrl = null;
+    showToast('Vidéo envoyée pour validation.');
+    showView('c-videos');
+  }catch(e){ showToast('Erreur lors de l\'envoi (' + e.message + ')', 'error'); }
 }
 
 function renderClipperVideos(){
@@ -865,7 +1125,10 @@ function renderClipperVideos(){
   document.getElementById('c-videos-body').innerHTML = vids.length ? vids.map(v=>`
     <tr>
       <td>${v.title}</td><td>${platformTag(v.platform)}</td><td class="mono">${fmtNum(v.views)}</td><td>${statusBadge(v.status)}</td>
-      <td>${v.status!=='pending' ? `<button class="btn btn-ghost btn-sm" onclick="editVideo('${v.id}')">Modifier les vues</button>` : ''}</td>
+      <td style="display:flex; gap:6px; flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" onclick="viewProof('${v.id}')">Voir preuve</button>
+        ${v.status!=='pending' ? `<button class="btn btn-ghost btn-sm" onclick="editVideo('${v.id}')">Modifier les vues</button>` : ''}
+      </td>
     </tr>`).join('') : `<tr><td colspan="5"><div class="empty-state"><div class="ic">▤</div>Aucune vidéo soumise.</div></td></tr>`;
 }
 async function editVideo(videoId){
@@ -874,11 +1137,13 @@ async function editVideo(videoId){
   if(val===null) return;
   const n = parseInt(val);
   if(isNaN(n) || n<0){ showToast('Valeur invalide', 'error'); return; }
-  v.views = n;
-  v.status = 'pending';
-  await saveVideos();
-  renderAll();
-  showToast('Vue mise à jour. En attente de nouvelle vérification.');
+  try{
+    await sbUpdate('videos', videoId, { views:n, status:'pending' });
+    v.views = n;
+    v.status = 'pending';
+    renderAll();
+    showToast('Vue mise à jour. En attente de nouvelle vérification.');
+  }catch(e){ showToast('Erreur lors de la mise à jour', 'error'); }
 }
 
 function renderClipperProfil(){
@@ -900,10 +1165,77 @@ function renderClipperProfil(){
   `).join('') : `<tr><td colspan="3"><div class="empty-state">Aucun paiement pour le moment.</div></td></tr>`;
 }
 
+async function updateOwnAccount(){
+  const c = DATA.clippers.find(x=>x.id===SESSION.clipperId);
+  if(!c) return;
+  const email = document.getElementById('profil-email-input').value.trim();
+  const newPassword = document.getElementById('profil-password-input').value;
+  if(newPassword && newPassword.length < 4){ showToast('Le mot de passe doit faire au moins 4 caractères', 'error'); return; }
+  const patch = { email: email || null };
+  if(newPassword) patch.password = newPassword;
+  try{
+    await sbUpdate('clippers', c.id, patch);
+    c.email = email;
+    if(newPassword) c.password = newPassword;
+    document.getElementById('profil-password-input').value = '';
+    showToast('Informations mises à jour.');
+  }catch(e){ showToast('Erreur lors de la mise à jour', 'error'); }
+}
+
 /* -------- INIT -------- */
+/* -------- REAL-TIME SYNC -------- */
+let syncTimer = null;
+let isSyncing = false;
+function startSync(){
+  stopSync();
+  syncTimer = setInterval(syncNow, 4000);
+}
+function stopSync(){
+  if(syncTimer){ clearInterval(syncTimer); syncTimer = null; }
+}
+async function syncNow(){
+  if(!SESSION || isSyncing) return;
+  isSyncing = true;
+  try{
+    await loadAll();
+    if(SESSION.role==='clipper' && !DATA.clippers.some(c=>c.id===SESSION.clipperId)){
+      showToast('Ton profil a été retiré du programme par le manager.', 'error');
+      await logout();
+      return;
+    }
+    if(!document.getElementById('modal-overlay').classList.contains('show')){
+      renderAll();
+    }
+    const dot = document.getElementById('sync-status');
+    if(dot){
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2,'0');
+      const mm = String(now.getMinutes()).padStart(2,'0');
+      const ss = String(now.getSeconds()).padStart(2,'0');
+      dot.innerHTML = `<span class="sync-dot"></span>Synchronisé à ${hh}:${mm}:${ss}`;
+    }
+  }catch(e){
+    const dot = document.getElementById('sync-status');
+    if(dot) dot.innerHTML = `<span class="sync-dot" style="background:var(--red); animation:none;"></span>Sync interrompue`;
+  }finally{
+    isSyncing = false;
+  }
+}
+
 (async function init(){
+  let connectionOk = true;
+  try{
+    await sbGet('settings', '&id=eq.1');
+  }catch(e){ connectionOk = false; }
   await loadAll();
   refreshClipperSelect();
+  if(!connectionOk){
+    const card = document.querySelector('.login-card');
+    const banner = document.createElement('div');
+    banner.style.cssText = 'background:rgba(214,48,74,0.1); border:1px solid rgba(214,48,74,0.3); color:var(--red); padding:10px 12px; border-radius:9px; font-size:12.5px; margin-bottom:18px;';
+    banner.textContent = "Connexion à la base de données impossible. Vérifie l'URL et la clé Supabase, ou réessaie dans un instant.";
+    card.insertBefore(banner, card.children[1]);
+  }
   await trySession();
   if(SESSION){
     if(SESSION.role==='clipper' && !DATA.clippers.some(c=>c.id===SESSION.clipperId)){
