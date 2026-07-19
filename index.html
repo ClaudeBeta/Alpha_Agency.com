@@ -101,6 +101,28 @@
   }
   .role-toggle button.active{ background:var(--violet); color:#fff; }
 
+  .period-dropdown-wrap{ position:relative; display:inline-block; margin-bottom:18px; }
+  .period-dropdown-btn{
+    display:flex; align-items:center; gap:9px; padding:9px 14px; border-radius:10px; border:1px solid var(--border);
+    background:var(--surface); color:var(--text-hi); font-size:13.5px; font-weight:600; cursor:pointer; box-shadow:var(--card-shadow);
+    font-family:'Inter',sans-serif;
+  }
+  .period-dropdown-btn:hover{ background:var(--surface-hover); }
+  .period-dropdown-btn .chev{ color:var(--text-mid); font-size:11px; margin-left:2px; }
+  .period-dropdown-menu{
+    display:none; position:absolute; top:calc(100% + 6px); left:0; min-width:220px; max-height:320px; overflow-y:auto;
+    background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:0 12px 30px rgba(20,20,40,0.12);
+    padding:6px; z-index:20;
+  }
+  .period-dropdown-menu.show{ display:block; }
+  .period-option{
+    display:flex; align-items:center; gap:9px; padding:9px 10px; border-radius:8px; font-size:13.5px; color:var(--text-hi);
+    cursor:pointer; font-weight:500;
+  }
+  .period-option:hover{ background:var(--bg-1); }
+  .period-option.active{ background:var(--violet-glow); color:var(--violet); font-weight:600; }
+  .period-option .check{ width:14px; font-size:12px; color:var(--violet); flex-shrink:0; }
+
   label.field-label{ display:block; font-size:12px; color:var(--text-mid); margin-bottom:6px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
   select, input[type=text], input[type=number], input[type=url], textarea{
     width:100%; background:var(--bg-1); border:1px solid var(--border); color:var(--text-hi);
@@ -285,7 +307,7 @@
     <div id="admin-login-block" style="display:none;">
       <div class="field"><label class="field-label">Code administrateur</label><input type="text" id="admin-code" placeholder="Code d'accès manager"></div>
       <button class="btn btn-primary" onclick="loginAsAdmin()">Entrer dans le dashboard</button>
-      <div class="hint">Code de démonstration : <span class="mono">Boss Alpha 😎</span></div>
+      <div class="hint">Accès réservé au manager de l'agence.</div>
     </div>
   </div>
 </div>
@@ -369,7 +391,13 @@
 
     <!-- CLASSEMENT (shared) -->
     <div class="view" id="view-classement">
-      <div class="page-head"><div><h2>🏆 Classement</h2><p>Compétition transparente entre tous les clippers de l'agence.</p></div></div>
+      <div class="page-head"><div><h2>🏆 Classement</h2><p id="classement-sub">Compétition transparente entre tous les clippers de l'agence.</p></div></div>
+      <div class="period-dropdown-wrap" id="period-dropdown-wrap">
+        <button class="period-dropdown-btn" id="period-dropdown-btn" onclick="togglePeriodDropdown()">
+          <span>📅</span><span id="period-dropdown-label">Total (cumul)</span><span class="chev">⌄</span>
+        </button>
+        <div class="period-dropdown-menu" id="period-dropdown-menu"></div>
+      </div>
       <div class="podium-wrap" id="podium"></div>
       <div class="card">
         <table><thead><tr><th>Pos</th><th>Clipper</th><th>Vues validées</th><th>Vidéos</th><th>Gains</th><th>Paiement</th></tr></thead><tbody id="ranking-body"></tbody></table>
@@ -380,7 +408,7 @@
           <div><div class="stat-label" style="font-size:12px; color:var(--text-mid); font-weight:600; text-transform:uppercase;">Total des vues</div><div class="stat-value mono" id="global-views" style="font-size:22px; font-weight:600;">-</div></div>
           <div><div class="stat-label" style="font-size:12px; color:var(--text-mid); font-weight:600; text-transform:uppercase;">Total des gains</div><div class="stat-value mono" id="global-gains" style="font-size:22px; font-weight:600;">-</div></div>
         </div>
-        <p class="global-note">Les chiffres affichés représentent les performances globales de l'ensemble des clippers du programme et ne correspondent pas aux performances personnelles d'un seul utilisateur.</p>
+        <p class="global-note">Les chiffres affichés représentent les performances globales de l'ensemble des clippers du programme et ne correspondent pas aux performances personnelles d'un seul utilisateur. Ce bloc reste toujours en cumul global, quelle que soit la période sélectionnée ci-dessus.</p>
       </div>
     </div>
 
@@ -400,6 +428,8 @@
           <div class="card-title">Rémunération</div>
           <div class="field"><label class="field-label">Prix pour 1000 vues (FCFA)</label><input type="number" id="setting-price"></div>
           <div class="field"><label class="field-label">Objectif de vues global</label><input type="number" id="setting-objective"></div>
+          <div class="field"><label class="field-label">Ajustement manuel du reste à payer (FCFA)</label><input type="number" id="setting-adjustment"></div>
+          <div style="font-size:11.5px; color:var(--text-low); margin:-10px 0 16px;">S'ajoute (ou se retranche si négatif) au reste à payer calculé automatiquement. Utile pour reporter un solde antérieur à l'utilisation de la plateforme.</div>
           <button class="btn btn-primary" onclick="saveSettings()">Enregistrer</button>
         </div>
         <div class="card">
@@ -586,7 +616,7 @@ async function sbDelete(table, id){
 function mapClipper(r){ return { id:r.id, pseudo:r.pseudo, email:r.email||'', password:r.password, joinedAt:r.joined_at }; }
 function mapVideo(r){ return { id:r.id, clipperId:r.clipper_id, title:r.title, platform:r.platform, url:r.url, views:r.views||0, note:r.note||'', proofImage:r.proof_image||null, status:r.status, submittedAt:r.submitted_at }; }
 function mapPayment(r){ return { id:r.id, clipperId:r.clipper_id, amount:r.amount, date:r.date, verified:r.verified }; }
-function mapSettings(r){ return { pricePer1000:r.price_per_1000, objectiveViews:r.objective_views }; }
+function mapSettings(r){ return { pricePer1000:r.price_per_1000, objectiveViews:r.objective_views, balanceAdjustment:r.balance_adjustment||0 }; }
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function fmtMoney(n){ n = Math.round(n||0); return n.toLocaleString('fr-FR').replace(/,/g,' ').replace(/\u00A0/g,' ') + ' FCFA'; }
@@ -604,8 +634,8 @@ async function loadAll(){
   try{ DATA.payments = (await sbGet('payments')).map(mapPayment); }catch(e){ console.error(e); DATA.payments = DATA.payments || []; }
   try{
     const rows = await sbGet('settings', '&id=eq.1');
-    DATA.settings = rows[0] ? mapSettings(rows[0]) : { pricePer1000:100, objectiveViews:10000000 };
-  }catch(e){ console.error(e); DATA.settings = DATA.settings || { pricePer1000:100, objectiveViews:10000000 }; }
+    DATA.settings = rows[0] ? mapSettings(rows[0]) : { pricePer1000:100, objectiveViews:10000000, balanceAdjustment:0 };
+  }catch(e){ console.error(e); DATA.settings = DATA.settings || { pricePer1000:100, objectiveViews:10000000, balanceAdjustment:0 }; }
 }
 
 async function trySession(){
@@ -632,10 +662,26 @@ function clipperStats(clipperId){
 }
 function allValidatedViews(){ return DATA.videos.filter(v=>v.status==='validated').reduce((a,v)=>a+(v.views||0),0); }
 function allGains(){ return allValidatedViews()/1000*(DATA.settings.pricePer1000||0); }
-function rankingList(){
+
+const MONTH_NAMES = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+function monthKey(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
+function monthLabel(d){ return MONTH_NAMES[d.getMonth()] + ' ' + d.getFullYear(); }
+
+function rankingList(period){
+  period = period || 'global';
+  let filterFn = () => true;
+  if(period !== 'global'){
+    const [y, m] = period.split('-').map(Number);
+    const start = new Date(y, m-1, 1);
+    const end = new Date(y, m, 1);
+    filterFn = v => { const d = new Date(v.submittedAt); return d >= start && d < end; };
+  }
   return DATA.clippers.map(c=>{
-    const s = clipperStats(c.id);
-    return { ...c, views:s.views, videos:s.validated.length, gains:s.gains, paidFull: s.remaining<=0 && s.gains>0 };
+    const overall = clipperStats(c.id);
+    const periodVids = overall.validated.filter(filterFn);
+    const views = periodVids.reduce((a,v)=>a+(v.views||0), 0);
+    const gains = views / 1000 * (DATA.settings.pricePer1000 || 0);
+    return { ...c, views, videos: periodVids.length, gains, paidFull: overall.remaining<=0 && overall.gains>0 };
   }).sort((a,b)=>b.views-a.views);
 }
 function platformTag(p){
@@ -735,6 +781,7 @@ function showView(name){
   if(name==='parametres'){
     document.getElementById('setting-price').value = DATA.settings.pricePer1000;
     document.getElementById('setting-objective').value = DATA.settings.objectiveViews;
+    document.getElementById('setting-adjustment').value = DATA.settings.balanceAdjustment || 0;
   }
   if(name==='c-profil' && SESSION && SESSION.role==='clipper'){
     const c = DATA.clippers.find(x=>x.id===SESSION.clipperId);
@@ -768,7 +815,7 @@ function renderAdminDashboard(){
   const views = allValidatedViews();
   const gains = allGains();
   const paidTotal = DATA.payments.reduce((a,p)=>a+(p.amount||0),0);
-  const remaining = Math.max(0, gains - paidTotal);
+  const remaining = Math.max(0, gains - paidTotal + (DATA.settings.balanceAdjustment || 0));
 
   const stats = [
     ['Clippers actifs', totalClippers, '◎', 'var(--violet)'],
@@ -1011,10 +1058,12 @@ async function markPaid(clipperId, amount){
 async function saveSettings(){
   const price = parseFloat(document.getElementById('setting-price').value) || 0;
   const obj = parseFloat(document.getElementById('setting-objective').value) || 0;
+  const adjustment = parseFloat(document.getElementById('setting-adjustment').value) || 0;
   try{
-    await sbUpdate('settings', 1, { price_per_1000:price, objective_views:obj });
+    await sbUpdate('settings', 1, { price_per_1000:price, objective_views:obj, balance_adjustment:adjustment });
     DATA.settings.pricePer1000 = price;
     DATA.settings.objectiveViews = obj;
+    DATA.settings.balanceAdjustment = adjustment;
     renderAll();
     showToast('Paramètres enregistrés.');
   }catch(e){ showToast('Erreur lors de l\'enregistrement', 'error'); }
@@ -1036,9 +1085,53 @@ function exportCSV(){
 function exportPDF(){ window.print(); }
 
 /* -------- RANKING (shared view) -------- */
+let currentPeriod = monthKey(new Date());
+let currentPeriodLabel = monthLabel(new Date());
+
+function buildPeriodOptions(){
+  const now = new Date();
+  const opts = [{ key:'global', label:'Total (cumul)' }];
+  for(let i=-5; i<=4; i++){
+    const d = new Date(now.getFullYear(), now.getMonth()+i, 1);
+    opts.push({ key: monthKey(d), label: monthLabel(d) });
+  }
+  return opts;
+}
+function renderPeriodMenu(){
+  const menu = document.getElementById('period-dropdown-menu');
+  menu.innerHTML = buildPeriodOptions().map(o=>`
+    <div class="period-option ${o.key===currentPeriod?'active':''}" onclick="setRankingPeriod('${o.key}')">
+      <span class="check">${o.key===currentPeriod ? '✓' : ''}</span>${o.label}
+    </div>`).join('');
+}
+function togglePeriodDropdown(){
+  const menu = document.getElementById('period-dropdown-menu');
+  if(menu.classList.contains('show')){ menu.classList.remove('show'); }
+  else{ renderPeriodMenu(); menu.classList.add('show'); }
+}
+document.addEventListener('click', (e)=>{
+  const wrap = document.getElementById('period-dropdown-wrap');
+  const menu = document.getElementById('period-dropdown-menu');
+  if(wrap && menu && !wrap.contains(e.target)){ menu.classList.remove('show'); }
+});
+function setRankingPeriod(period){
+  const opt = buildPeriodOptions().find(o=>o.key===period);
+  currentPeriod = period;
+  currentPeriodLabel = opt ? opt.label : 'Total (cumul)';
+  document.getElementById('period-dropdown-label').textContent = currentPeriodLabel;
+  document.getElementById('period-dropdown-menu').classList.remove('show');
+  renderRanking();
+}
+
 function renderRanking(){
-  const list = rankingList();
-  const top3 = list.slice(0,3);
+  const list = rankingList(currentPeriod);
+  const sub = document.getElementById('classement-sub');
+  if(sub) sub.textContent = currentPeriod==='global'
+    ? "Compétition transparente entre tous les clippers de l'agence, en cumul depuis le début."
+    : `Classement du mois de ${currentPeriodLabel} — les compteurs repartent à zéro chaque mois, nouvelle chance pour tous.`;
+
+  const contenders = list.filter(c=>c.views>0);
+  const top3 = contenders.slice(0,3);
   const order = [top3[1], top3[0], top3[2]];
   const classes = ['p2','p1','p3'];
   document.getElementById('podium').innerHTML = top3.length ? order.map((c,i)=>{
@@ -1049,7 +1142,7 @@ function renderRanking(){
       <div class="pviews">${fmtNum(c.views)} vues</div>
       <div class="podium-bar">${i===1?'🥇':i===0?'🥈':'🥉'}</div>
     </div>`;
-  }).join('') : '';
+  }).join('') : `<div class="empty-state" style="width:100%;">Aucune vue validée sur cette période pour le moment.</div>`;
 
   document.getElementById('ranking-body').innerHTML = list.length ? list.map((c,i)=>`
     <tr>
@@ -1223,6 +1316,7 @@ async function syncNow(){
 }
 
 (async function init(){
+  document.getElementById('period-dropdown-label').textContent = currentPeriodLabel;
   let connectionOk = true;
   try{
     await sbGet('settings', '&id=eq.1');
