@@ -245,7 +245,8 @@
   .kv-row .k{ color:var(--text-mid); }
   .kv-row .v{ font-weight:600; }
 
-  .platform-tag{ font-size:11px; padding:2px 7px; border-radius:5px; background:var(--bg-1); color:var(--text-mid); border:1px solid var(--border-soft); }
+  .platform-tag{ font-size:11px; padding:2px 7px; border-radius:5px; background:var(--bg-1); color:var(--text-mid); border:1px solid var(--border-soft); display:inline-block; }
+  a.platform-tag:hover{ filter:brightness(0.85); text-decoration:none; }
 
   .toast{
     position:fixed; bottom:24px; right:24px; background:var(--surface); border:1px solid var(--border);
@@ -700,9 +701,12 @@ function rankingList(period){
     return { ...c, views, videos: periodVids.length, gains, paidFull: overall.remaining<=0 && overall.gains>0 };
   }).sort((a,b)=>b.views-a.views);
 }
-function platformTag(p){
+function platformTag(p, url){
   const map = { 'TikTok':'pink', 'YouTube':'coral', 'Autre':'blue' };
   const color = 'var(--' + (map[p] || 'blue') + ')';
+  if(url){
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="platform-tag" style="color:${color}; border-color:${color}66; text-decoration:none; cursor:pointer;" title="Voir la vidéo sur ${p}">${p} ↗</a>`;
+  }
   return `<span class="platform-tag" style="color:${color}; border-color:${color}66;">${p}</span>`;
 }
 function statusBadge(status){
@@ -892,7 +896,7 @@ function renderAdminDashboard(){
   const recent = [...DATA.videos].sort((a,b)=>new Date(b.submittedAt)-new Date(a.submittedAt)).slice(0,6);
   document.getElementById('recent-videos-body').innerHTML = recent.length ? recent.map(v=>{
     const c = DATA.clippers.find(c=>c.id===v.clipperId);
-    return `<tr><td>${c?c.pseudo:'?'}</td><td>${v.title}</td><td>${platformTag(v.platform)}</td><td class="mono">${fmtNum(v.views)}</td><td>${statusBadge(v.status)}</td></tr>`;
+    return `<tr><td>${c?c.pseudo:'?'}</td><td>${v.title}</td><td>${platformTag(v.platform, v.url)}</td><td class="mono">${fmtNum(v.views)}</td><td>${statusBadge(v.status)}</td></tr>`;
   }).join('') : `<tr><td colspan="5"><div class="empty-state">Aucune vidéo soumise pour le moment.</div></td></tr>`;
 
   const obj = DATA.settings.objectiveViews || 1;
@@ -919,7 +923,7 @@ function renderValidation(){
     return `<tr>
       <td>${c?c.pseudo:'?'}</td>
       <td>${v.title}</td>
-      <td>${platformTag(v.platform)}</td>
+      <td>${platformTag(v.platform, v.url)}</td>
       <td class="mono">${fmtNum(v.views)}</td>
       <td>${statusBadge(v.status)}</td>
       <td><button class="btn btn-ghost btn-sm" onclick="openReview('${v.id}')">Examiner</button></td>
@@ -1273,7 +1277,7 @@ function renderClipperDashboard(){
 
   const recent = [...s.vids].sort((a,b)=>new Date(b.submittedAt)-new Date(a.submittedAt)).slice(0,5);
   document.getElementById('c-recent-videos').innerHTML = recent.length ? recent.map(v=>`
-    <tr><td>${v.title}</td><td>${platformTag(v.platform)}</td><td class="mono">${fmtNum(v.views)}</td><td>${statusBadge(v.status)}</td></tr>
+    <tr><td>${v.title}</td><td>${platformTag(v.platform, v.url)}</td><td class="mono">${fmtNum(v.views)}</td><td>${statusBadge(v.status)}</td></tr>
   `).join('') : `<tr><td colspan="4"><div class="empty-state">Tu n'as pas encore soumis de vidéo.</div></td></tr>`;
 
   const views = allValidatedViews();
@@ -1314,7 +1318,7 @@ function renderClipperVideos(){
   const vids = DATA.videos.filter(v=>v.clipperId===SESSION.clipperId).sort((a,b)=>new Date(b.submittedAt)-new Date(a.submittedAt));
   document.getElementById('c-videos-body').innerHTML = vids.length ? vids.map(v=>`
     <tr>
-      <td>${v.title}</td><td>${platformTag(v.platform)}</td><td class="mono">${fmtNum(v.views)}</td><td>${statusBadge(v.status)}</td>
+      <td>${v.title}</td><td>${platformTag(v.platform, v.url)}</td><td class="mono">${fmtNum(v.views)}</td><td>${statusBadge(v.status)}</td>
       <td style="display:flex; gap:6px; flex-wrap:wrap;">
         <button class="btn btn-ghost btn-sm" onclick="viewProof('${v.id}')">Voir preuve</button>
         ${v.status!=='pending' ? `<button class="btn btn-ghost btn-sm" onclick="editVideo('${v.id}')">Modifier les vues</button>` : ''}
