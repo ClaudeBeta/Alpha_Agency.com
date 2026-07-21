@@ -288,8 +288,9 @@
     <div id="clipper-login-block">
       <div class="field">
         <label class="field-label">Mon pseudo</label>
-        <select id="clipper-select"></select>
+        <input type="text" id="clipper-pseudo-input" placeholder="Ton pseudo">
       </div>
+      <div id="recent-clippers-chips"></div>
       <div class="field">
         <label class="field-label">Mot de passe</label>
         <input type="text" id="clipper-password" placeholder="Ton mot de passe">
@@ -297,6 +298,7 @@
       <button class="btn btn-primary" onclick="loginAsClipper()">Entrer dans l'espace</button>
       <div class="hint">Nouveau ici ? <span style="color:var(--violet); cursor:pointer;" onclick="toggleNewClipper()">Créer un profil clipper</span></div>
       <div id="new-clipper-block" style="display:none; margin-top:16px;">
+        <div class="field"><label class="field-label">Clé d'invitation</label><input type="text" id="new-clipper-invite" placeholder="Ex : A7K2" maxlength="4" style="text-transform:uppercase;"></div>
         <div class="field"><label class="field-label">Pseudo</label><input type="text" id="new-clipper-pseudo" placeholder="Ex : ClipMaster"></div>
         <div class="field"><label class="field-label">Email (optionnel)</label><input type="text" id="new-clipper-email" placeholder="toi@exemple.com"></div>
         <div class="field"><label class="field-label">Mot de passe</label><input type="text" id="new-clipper-password" placeholder="Choisis un mot de passe"></div>
@@ -321,6 +323,7 @@
       <div class="nav-item active" data-view="dashboard" onclick="showView('dashboard')"><span class="ic">◆</span>Dashboard</div>
       <div class="nav-item" data-view="validation" onclick="showView('validation')"><span class="ic">✓</span>Validation</div>
       <div class="nav-item" data-view="clippers" onclick="showView('clippers')"><span class="ic">◎</span>Clippers</div>
+      <div class="nav-item" data-view="invites" onclick="showView('invites')"><span class="ic">🔑</span>Clés d'invitation</div>
       <div class="nav-item" data-view="classement" onclick="showView('classement')"><span class="ic">🏆</span>Classement</div>
       <div class="nav-item" data-view="paiements" onclick="showView('paiements')"><span class="ic">◈</span>Paiements</div>
       <div class="nav-item" data-view="parametres" onclick="showView('parametres')"><span class="ic">⚙</span>Paramètres</div>
@@ -386,6 +389,17 @@
       </div>
       <div class="card">
         <table><thead><tr><th>Pseudo</th><th>Inscrit le</th><th>Vidéos validées</th><th>Vues validées</th><th>Gains</th><th></th></tr></thead><tbody id="clippers-body"></tbody></table>
+      </div>
+    </div>
+
+    <!-- ADMIN INVITE KEYS -->
+    <div class="view" id="view-invites">
+      <div class="page-head">
+        <div><h2>Clés d'invitation</h2><p>Génère des clés à usage unique pour autoriser la création de nouveaux comptes clippers.</p></div>
+        <button class="btn btn-primary" style="width:auto;" onclick="generateInviteKey()">+ Générer une clé</button>
+      </div>
+      <div class="card">
+        <table><thead><tr><th>Code</th><th>Statut</th><th>Utilisée par</th><th>Date</th><th></th></tr></thead><tbody id="invites-body"></tbody></table>
       </div>
     </div>
 
@@ -532,7 +546,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-let DATA = { clippers: [], videos: [], payments: [], settings: { pricePer1000: 100, objectiveViews: 10000000 } };
+let DATA = { clippers: [], videos: [], payments: [], inviteKeys: [], settings: { pricePer1000: 100, objectiveViews: 10000000, balanceAdjustment: 0 } };
 let SESSION = null;
 let currentProofDataUrl = null;
 const MAX_PROOF_CHARS = 3.5 * 1024 * 1024;
@@ -617,6 +631,7 @@ function mapClipper(r){ return { id:r.id, pseudo:r.pseudo, email:r.email||'', pa
 function mapVideo(r){ return { id:r.id, clipperId:r.clipper_id, title:r.title, platform:r.platform, url:r.url, views:r.views||0, note:r.note||'', proofImage:r.proof_image||null, status:r.status, submittedAt:r.submitted_at }; }
 function mapPayment(r){ return { id:r.id, clipperId:r.clipper_id, amount:r.amount, date:r.date, verified:r.verified }; }
 function mapSettings(r){ return { pricePer1000:r.price_per_1000, objectiveViews:r.objective_views, balanceAdjustment:r.balance_adjustment||0 }; }
+function mapInviteKey(r){ return { id:r.id, code:r.code, used:r.used, usedBy:r.used_by, usedAt:r.used_at, createdAt:r.created_at }; }
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function fmtMoney(n){ n = Math.round(n||0); return n.toLocaleString('fr-FR').replace(/,/g,' ').replace(/\u00A0/g,' ') + ' FCFA'; }
@@ -636,6 +651,7 @@ async function loadAll(){
     const rows = await sbGet('settings', '&id=eq.1');
     DATA.settings = rows[0] ? mapSettings(rows[0]) : { pricePer1000:100, objectiveViews:10000000, balanceAdjustment:0 };
   }catch(e){ console.error(e); DATA.settings = DATA.settings || { pricePer1000:100, objectiveViews:10000000, balanceAdjustment:0 }; }
+  try{ DATA.inviteKeys = (await sbGet('invitation_keys')).map(mapInviteKey); }catch(e){ console.error(e); DATA.inviteKeys = DATA.inviteKeys || []; }
 }
 
 async function trySession(){
@@ -702,27 +718,65 @@ function setLoginTab(tab){
   document.getElementById('clipper-login-block').style.display = tab==='clipper' ? 'block':'none';
   document.getElementById('admin-login-block').style.display = tab==='admin' ? 'block':'none';
 }
-function refreshClipperSelect(){
-  const sel = document.getElementById('clipper-select');
-  sel.innerHTML = DATA.clippers.length ? DATA.clippers.map(c=>`<option value="${c.id}">${c.pseudo}</option>`).join('') : '<option value="">Aucun profil pour le moment</option>';
+
+/* -------- RECENT ACCOUNTS (local device only, for privacy) -------- */
+async function loadRecentAccounts(){
+  try{
+    const r = await window.storage.get('recent-accounts', false);
+    return r && r.value ? JSON.parse(r.value) : [];
+  }catch(e){ return []; }
 }
+async function addRecentAccount(pseudo){
+  try{
+    let list = await loadRecentAccounts();
+    list = list.filter(p => p.toLowerCase() !== pseudo.toLowerCase());
+    list.unshift(pseudo);
+    list = list.slice(0, 5);
+    await window.storage.set('recent-accounts', JSON.stringify(list), false);
+    renderRecentAccounts(list);
+  }catch(e){}
+}
+function renderRecentAccounts(list){
+  const el = document.getElementById('recent-clippers-chips');
+  if(!el) return;
+  if(!list || !list.length){ el.innerHTML = ''; return; }
+  el.innerHTML = `
+    <div style="font-size:11px; color:var(--text-low); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin:4px 0 8px;">Comptes récents sur cet appareil</div>
+    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+      ${list.map(p => `<button type="button" class="btn btn-ghost btn-sm" onclick="pickRecentAccount(this.dataset.p)" data-p="${p.replace(/"/g,'&quot;')}">${p}</button>`).join('')}
+    </div>`;
+}
+function pickRecentAccount(pseudo){
+  document.getElementById('clipper-pseudo-input').value = pseudo;
+  document.getElementById('clipper-password').focus();
+}
+
 function toggleNewClipper(){
   const el = document.getElementById('new-clipper-block');
   el.style.display = el.style.display==='none' ? 'block':'none';
 }
 async function createClipper(){
+  const inviteCode = document.getElementById('new-clipper-invite').value.trim().toUpperCase();
   const pseudo = document.getElementById('new-clipper-pseudo').value.trim();
   const email = document.getElementById('new-clipper-email').value.trim();
   const password = document.getElementById('new-clipper-password').value;
+  if(!inviteCode || inviteCode.length !== 4){ showToast('Entre une clé d\'invitation valide à 4 caractères', 'error'); return; }
   if(!pseudo){ showToast('Entre un pseudo', 'error'); return; }
   if(!password || password.length < 4){ showToast('Choisis un mot de passe d\'au moins 4 caractères', 'error'); return; }
   if(DATA.clippers.some(c=>c.pseudo.toLowerCase()===pseudo.toLowerCase())){ showToast('Ce pseudo existe déjà', 'error'); return; }
+  const key = DATA.inviteKeys.find(k=>k.code===inviteCode && !k.used);
+  if(!key){ showToast('Clé d\'invitation invalide ou déjà utilisée', 'error'); return; }
   try{
     const row = await sbInsert('clippers', { pseudo, email: email || null, password, joined_at: new Date().toISOString() });
     const c = mapClipper(row);
     DATA.clippers.push(c);
-    refreshClipperSelect();
-    document.getElementById('clipper-select').value = c.id;
+    try{
+      await sbUpdate('invitation_keys', key.id, { used:true, used_by:c.id, used_at:new Date().toISOString() });
+      key.used = true; key.usedBy = c.id; key.usedAt = new Date().toISOString();
+    }catch(e){}
+    await addRecentAccount(c.pseudo);
+    document.getElementById('clipper-pseudo-input').value = c.pseudo;
+    document.getElementById('new-clipper-invite').value = '';
     document.getElementById('new-clipper-pseudo').value = '';
     document.getElementById('new-clipper-email').value = '';
     document.getElementById('new-clipper-password').value = '';
@@ -731,14 +785,15 @@ async function createClipper(){
   }catch(e){ showToast('Impossible de créer le profil (' + e.message + ')', 'error'); }
 }
 async function loginAsClipper(){
-  const id = document.getElementById('clipper-select').value;
+  const pseudo = document.getElementById('clipper-pseudo-input').value.trim();
   const password = document.getElementById('clipper-password').value;
-  if(!id){ showToast('Crée d\'abord un profil clipper', 'error'); return; }
-  const c = DATA.clippers.find(x=>x.id===id);
-  if(!c){ showToast('Profil introuvable', 'error'); return; }
+  if(!pseudo){ showToast('Entre ton pseudo', 'error'); return; }
+  const c = DATA.clippers.find(x=>x.pseudo.toLowerCase()===pseudo.toLowerCase());
+  if(!c){ showToast('Compte introuvable', 'error'); return; }
   if((c.password || '') !== password){ showToast('Mot de passe incorrect', 'error'); return; }
   SESSION = { role:'clipper', clipperId: c.id, pseudo: c.pseudo };
   await persistSession();
+  await addRecentAccount(c.pseudo);
   document.getElementById('clipper-password').value = '';
   enterApp();
 }
@@ -748,6 +803,7 @@ async function loginAsAdmin(){
   SESSION = { role:'admin', pseudo:'Manager' };
   await persistSession();
   enterApp();
+
 }
 async function logout(){
   SESSION = null;
@@ -755,7 +811,6 @@ async function logout(){
   stopSync();
   document.getElementById('app').classList.remove('ready');
   document.getElementById('login-screen').style.display = 'flex';
-  refreshClipperSelect();
 }
 
 /* -------- APP SHELL -------- */
@@ -797,6 +852,7 @@ function renderAll(){
     renderValidation();
     renderClippersDirectory('clippers-body', true);
     renderPayments();
+    renderInviteKeys();
   } else {
     renderClipperDashboard();
     renderClipperVideos();
@@ -976,6 +1032,49 @@ async function resetClipperPassword(clipperId){
   }catch(e){ showToast('Erreur lors de la réinitialisation', 'error'); }
 }
 
+/* -------- INVITE KEYS -------- */
+function randomInviteCode(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s = '';
+  for(let i=0;i<4;i++) s += chars[Math.floor(Math.random()*chars.length)];
+  return s;
+}
+async function generateInviteKey(){
+  let code, attempts = 0;
+  do{ code = randomInviteCode(); attempts++; }
+  while(DATA.inviteKeys.some(k=>k.code===code) && attempts<15);
+  try{
+    const row = await sbInsert('invitation_keys', { code, used:false });
+    DATA.inviteKeys.push(mapInviteKey(row));
+    renderInviteKeys();
+    showToast('Clé générée : ' + code);
+  }catch(e){ showToast('Erreur lors de la génération de la clé', 'error'); }
+}
+function renderInviteKeys(){
+  const el = document.getElementById('invites-body');
+  if(!el) return;
+  const rows = [...DATA.inviteKeys].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  el.innerHTML = rows.length ? rows.map(k=>{
+    const usedByClipper = k.usedBy ? DATA.clippers.find(c=>c.id===k.usedBy) : null;
+    return `<tr>
+      <td class="mono" style="font-weight:600; letter-spacing:.05em;">${k.code}</td>
+      <td>${k.used ? '<span class="badge badge-rejected">Utilisée</span>' : '<span class="badge badge-validated">Disponible</span>'}</td>
+      <td>${usedByClipper ? usedByClipper.pseudo : '-'}</td>
+      <td>${k.usedAt ? new Date(k.usedAt).toLocaleDateString('fr-FR') : new Date(k.createdAt).toLocaleDateString('fr-FR')}</td>
+      <td>${!k.used ? `<button class="btn btn-danger btn-sm" onclick="deleteInviteKey('${k.id}')">Supprimer</button>` : ''}</td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="5"><div class="empty-state">Aucune clé générée pour le moment.</div></td></tr>`;
+}
+async function deleteInviteKey(keyId){
+  if(!confirm('Supprimer cette clé non utilisée ?')) return;
+  try{
+    await sbDelete('invitation_keys', keyId);
+    DATA.inviteKeys = DATA.inviteKeys.filter(k=>k.id!==keyId);
+    renderInviteKeys();
+    showToast('Clé supprimée.');
+  }catch(e){ showToast('Erreur lors de la suppression', 'error'); }
+}
+
 function openAddClipper(){
   document.getElementById('modal-content').innerHTML = `
     <h3>Ajouter un clipper</h3>
@@ -997,7 +1096,6 @@ async function addClipperFromAdmin(){
   try{
     const row = await sbInsert('clippers', { pseudo, email: email || null, password, joined_at: new Date().toISOString() });
     DATA.clippers.push(mapClipper(row));
-    refreshClipperSelect();
     closeModal();
     renderAll();
     showToast('Clipper ajouté. Communique-lui son mot de passe.');
@@ -1025,7 +1123,6 @@ async function removeClipper(clipperId){
     DATA.clippers = DATA.clippers.filter(c=>c.id!==clipperId);
     DATA.videos = DATA.videos.filter(v=>v.clipperId!==clipperId);
     DATA.payments = DATA.payments.filter(p=>p.clipperId!==clipperId);
-    refreshClipperSelect();
     closeModal();
     renderAll();
     showToast('Clipper retiré du programme.');
@@ -1322,7 +1419,7 @@ async function syncNow(){
     await sbGet('settings', '&id=eq.1');
   }catch(e){ connectionOk = false; }
   await loadAll();
-  refreshClipperSelect();
+  try{ renderRecentAccounts(await loadRecentAccounts()); }catch(e){}
   if(!connectionOk){
     const card = document.querySelector('.login-card');
     const banner = document.createElement('div');
