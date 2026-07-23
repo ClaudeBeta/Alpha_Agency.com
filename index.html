@@ -101,6 +101,11 @@
   }
   .role-toggle button.active{ background:var(--violet); color:#fff; }
 
+  .filter-bar{ display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  .filter-bar input[type=text]{ flex:1; min-width:220px; }
+  .filter-bar select{ min-width:160px; background:var(--surface); border:1px solid var(--border); color:var(--text-hi); padding:10px 12px; border-radius:9px; font-size:13.5px; font-family:'Inter',sans-serif; }
+  .filter-bar select:focus{ border-color:var(--violet); box-shadow:0 0 0 3px var(--violet-glow); }
+
   .period-dropdown-wrap{ position:relative; display:inline-block; margin-bottom:18px; }
   .period-dropdown-btn{
     display:flex; align-items:center; gap:9px; padding:9px 14px; border-radius:10px; border:1px solid var(--border);
@@ -377,6 +382,21 @@
     <!-- ADMIN VALIDATION -->
     <div class="view" id="view-validation">
       <div class="page-head"><div><h2>Validation des performances</h2><p>Vérifie les preuves avant de valider les vues.</p></div></div>
+      <div class="filter-bar">
+        <input type="text" id="validation-search" placeholder="Rechercher un clipper ou un titre..." oninput="renderValidation()">
+        <select id="validation-filter-platform" onchange="renderValidation()">
+          <option value="all">Toutes plateformes</option>
+          <option value="TikTok">TikTok</option>
+          <option value="YouTube">YouTube</option>
+          <option value="Autre">Autre</option>
+        </select>
+        <select id="validation-filter-status" onchange="renderValidation()">
+          <option value="all">Tous statuts</option>
+          <option value="pending">En attente</option>
+          <option value="validated">Validé</option>
+          <option value="rejected">Rejeté</option>
+        </select>
+      </div>
       <div class="card">
         <table><thead><tr><th>Clipper</th><th>Titre</th><th>Plateforme</th><th>Vues déclarées</th><th>Statut</th><th></th></tr></thead><tbody id="validation-body"></tbody></table>
       </div>
@@ -387,6 +407,9 @@
       <div class="page-head">
         <div><h2>Clippers</h2><p>Tous les membres de l'équipe.</p></div>
         <button class="btn btn-primary" style="width:auto;" onclick="openAddClipper()">+ Ajouter un clipper</button>
+      </div>
+      <div class="filter-bar">
+        <input type="text" id="clippers-search" placeholder="Rechercher un pseudo..." oninput="renderClippersDirectory('clippers-body', true)">
       </div>
       <div class="card">
         <table><thead><tr><th>Pseudo</th><th>Inscrit le</th><th></th></tr></thead><tbody id="clippers-body"></tbody></table>
@@ -429,9 +452,17 @@
 
     <!-- ADMIN PAIEMENTS -->
     <div class="view" id="view-paiements">
-      <div class="page-head"><div><h2>Paiements</h2><p>Suivi des montants dus et des paiements effectués.</p></div></div>
+      <div class="page-head"><div><h2>Paiements</h2><p>Paiement mensuel unique par clipper, calculé sur les gains du mois en cours.</p></div></div>
+      <div class="filter-bar">
+        <input type="text" id="payments-search" placeholder="Rechercher un clipper..." oninput="renderPayments()">
+        <select id="payments-filter-status" onchange="renderPayments()">
+          <option value="all">Tous statuts</option>
+          <option value="pending">En cours</option>
+          <option value="paid">Certifié</option>
+        </select>
+      </div>
       <div class="card">
-        <table><thead><tr><th>Clipper</th><th>Gains totaux</th><th>Statut</th><th></th></tr></thead><tbody id="payments-body"></tbody></table>
+        <table><thead><tr><th>Clipper</th><th>Gains du mois en cours</th><th>Statut</th><th></th></tr></thead><tbody id="payments-body"></tbody></table>
       </div>
     </div>
 
@@ -515,7 +546,7 @@
         </div>
         <div class="card">
           <div class="card-title">Historique des paiements</div>
-          <table><thead><tr><th>Date</th><th>Montant</th><th>Statut</th></tr></thead><tbody id="profil-payments-body"></tbody></table>
+          <table><thead><tr><th>Date</th><th>Montant</th><th>Statut</th><th></th></tr></thead><tbody id="profil-payments-body"></tbody></table>
         </div>
       </div>
       <div class="card" style="max-width:420px; margin-top:14px;">
@@ -633,8 +664,8 @@ async function sbDelete(table, id){
 }
 
 function mapClipper(r){ return { id:r.id, pseudo:r.pseudo, email:r.email||'', password:r.password, joinedAt:r.joined_at, mobileMoneyNumber:r.mobile_money_number||'', mobileMoneyName:r.mobile_money_name||'' }; }
-function mapVideo(r){ return { id:r.id, clipperId:r.clipper_id, title:r.title, platform:r.platform, url:r.url, views:r.views||0, note:r.note||'', proofImage:r.proof_image||null, status:r.status, submittedAt:r.submitted_at }; }
-function mapPayment(r){ return { id:r.id, clipperId:r.clipper_id, amount:r.amount, date:r.date, verified:r.verified }; }
+function mapVideo(r){ return { id:r.id, clipperId:r.clipper_id, title:r.title, platform:r.platform, url:r.url, views:r.views||0, note:r.note||'', proofImage:r.proof_image||null, status:r.status, submittedAt:r.submitted_at, rejectionReason:r.rejection_reason||'' }; }
+function mapPayment(r){ return { id:r.id, clipperId:r.clipper_id, amount:r.amount, date:r.date, verified:r.verified, proofImage:r.proof_image||null, acknowledged:r.acknowledged||false }; }
 function mapSettings(r){ return { pricePer1000:r.price_per_1000, objectiveViews:r.objective_views, balanceAdjustment:r.balance_adjustment||0 }; }
 function mapInviteKey(r){ return { id:r.id, code:r.code, used:r.used, usedBy:r.used_by, usedAt:r.used_at, createdAt:r.created_at }; }
 
@@ -678,10 +709,18 @@ function clipperStats(clipperId){
   const validated = vids.filter(v => v.status === 'validated');
   const views = validated.reduce((a,v)=>a + (v.views||0), 0);
   const gains = views / 1000 * (DATA.settings.pricePer1000 || 0);
-  const paid = DATA.payments.filter(p => p.clipperId === clipperId).reduce((a,p)=>a+(p.amount||0),0);
-  return { vids, validated, views, gains, paid, remaining: Math.max(0, gains - paid) };
+  const clipperPayments = DATA.payments.filter(p => p.clipperId === clipperId);
+  const paid = clipperPayments.reduce((a,p)=>a+(p.amount||0),0);
+  const allAcknowledged = clipperPayments.length > 0 && clipperPayments.every(p => p.acknowledged);
+  return { vids, validated, views, gains, paid, remaining: Math.max(0, gains - paid), allAcknowledged };
 }
 function allValidatedViews(){ return DATA.videos.filter(v=>v.status==='validated').reduce((a,v)=>a+(v.views||0),0); }
+function paymentStatusBadge(s){
+  if(s.gains<=0) return '<span class="badge badge-pending">Aucun gain</span>';
+  if(s.remaining>0) return '<span class="badge badge-pending">Dû</span>';
+  if(!s.allAcknowledged) return '<span class="badge badge-pending">En attente de confirmation</span>';
+  return '<span class="badge badge-paid">✅ Paiement certifié</span>';
+}
 function allGains(){ return allValidatedViews()/1000*(DATA.settings.pricePer1000||0); }
 
 const MONTH_NAMES = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
@@ -702,7 +741,7 @@ function rankingList(period){
     const periodVids = overall.validated.filter(filterFn);
     const views = periodVids.reduce((a,v)=>a+(v.views||0), 0);
     const gains = views / 1000 * (DATA.settings.pricePer1000 || 0);
-    return { ...c, views, videos: periodVids.length, gains, paidFull: overall.remaining<=0 && overall.gains>0 };
+    return { ...c, views, videos: periodVids.length, gains, paidFull: overall.remaining<=0 && overall.gains>0 && overall.allAcknowledged };
   }).sort((a,b)=>b.views-a.views);
 }
 function platformTag(p, url){
@@ -923,7 +962,24 @@ function renderAdminDashboard(){
 }
 
 function renderValidation(){
-  const rows = [...DATA.videos].sort((a,b)=>new Date(b.submittedAt)-new Date(a.submittedAt));
+  const searchEl = document.getElementById('validation-search');
+  const platformEl = document.getElementById('validation-filter-platform');
+  const statusEl = document.getElementById('validation-filter-status');
+  const search = searchEl ? searchEl.value.trim().toLowerCase() : '';
+  const platformFilter = platformEl ? platformEl.value : 'all';
+  const statusFilter = statusEl ? statusEl.value : 'all';
+
+  let rows = [...DATA.videos].sort((a,b)=>new Date(b.submittedAt)-new Date(a.submittedAt));
+  if(platformFilter !== 'all') rows = rows.filter(v => v.platform === platformFilter);
+  if(statusFilter !== 'all') rows = rows.filter(v => v.status === statusFilter);
+  if(search){
+    rows = rows.filter(v => {
+      const c = DATA.clippers.find(c=>c.id===v.clipperId);
+      const pseudo = c ? c.pseudo.toLowerCase() : '';
+      return pseudo.includes(search) || (v.title||'').toLowerCase().includes(search);
+    });
+  }
+
   document.getElementById('validation-body').innerHTML = rows.length ? rows.map(v=>{
     const c = DATA.clippers.find(c=>c.id===v.clipperId);
     return `<tr>
@@ -934,7 +990,7 @@ function renderValidation(){
       <td>${statusBadge(v.status)}</td>
       <td><button class="btn btn-ghost btn-sm" onclick="openReview('${v.id}')">Examiner</button></td>
     </tr>`;
-  }).join('') : `<tr><td colspan="6"><div class="empty-state"><div class="ic">▤</div>Aucune vidéo à valider.</div></td></tr>`;
+  }).join('') : `<tr><td colspan="6"><div class="empty-state"><div class="ic">▤</div>Aucun résultat pour ces filtres.</div></td></tr>`;
 }
 
 function openReview(videoId){
@@ -956,6 +1012,7 @@ function renderReviewModal(v, c, proofHtml){
     ${v.note ? `<div class="kv-row"><span class="k">Note</span><span class="v">${v.note}</span></div>` : ''}
     <div style="margin:14px 0;"><div class="field-label" style="margin-bottom:8px;">Preuve (capture d'écran)</div>${proofHtml}</div>
     <div class="field" style="margin-top:16px;"><label class="field-label">Vues (modifiable)</label><input type="number" id="review-views" value="${v.views}"></div>
+    <div class="field"><label class="field-label">Motif de rejet (si rejeté)</label><input type="text" id="review-rejection-reason" placeholder="Ex : preuve illisible, vues incohérentes..." value="${v.rejectionReason ? v.rejectionReason.replace(/"/g,'&quot;') : ''}"></div>
     <div style="display:flex; gap:10px; margin-top:18px;">
       <button class="btn btn-success" style="flex:1;" onclick="reviewDecision('${v.id}','validated')">Valider</button>
       <button class="btn btn-danger" style="flex:1;" onclick="reviewDecision('${v.id}','rejected')">Rejeter</button>
@@ -968,13 +1025,21 @@ function viewProof(videoId){
   document.getElementById('modal-content').innerHTML = `<h3>Preuve</h3>${v && v.proofImage ? `<img src="${v.proofImage}" style="max-width:100%; border-radius:8px; border:1px solid var(--border-soft);">` : '<div class="empty-state">Aucune preuve disponible.</div>'}<button class="btn btn-ghost" style="width:100%; margin-top:14px;" onclick="closeModal()">Fermer</button>`;
   document.getElementById('modal-overlay').classList.add('show');
 }
+function viewRejectionReason(videoId){
+  const v = DATA.videos.find(x=>x.id===videoId);
+  document.getElementById('modal-content').innerHTML = `<h3>Motif de rejet</h3><p style="font-size:13.5px; color:var(--text-hi); line-height:1.6;">${v && v.rejectionReason ? v.rejectionReason : "Aucun motif n'a été précisé par l'administrateur."}</p><button class="btn btn-ghost" style="width:100%; margin-top:16px;" onclick="closeModal()">Fermer</button>`;
+  document.getElementById('modal-overlay').classList.add('show');
+}
 async function reviewDecision(videoId, status){
   const v = DATA.videos.find(x=>x.id===videoId);
   const newViews = parseInt(document.getElementById('review-views').value) || 0;
+  const reasonInput = document.getElementById('review-rejection-reason');
+  const reason = status === 'rejected' ? (reasonInput ? reasonInput.value.trim() : '') : '';
   try{
-    await sbUpdate('videos', videoId, { views:newViews, status });
+    await sbUpdate('videos', videoId, { views:newViews, status, rejection_reason: reason || null });
     v.views = newViews;
     v.status = status;
+    v.rejectionReason = reason;
     closeModal();
     renderAll();
     showToast(status==='validated' ? 'Vidéo validée.' : 'Vidéo rejetée.');
@@ -983,7 +1048,12 @@ async function reviewDecision(videoId, status){
 function closeModal(){ document.getElementById('modal-overlay').classList.remove('show'); }
 
 function renderClippersDirectory(tbodyId, allowRemove){
-  const rows = rankingList();
+  let rows = rankingList();
+  const searchEl = document.getElementById('clippers-search');
+  if(allowRemove && searchEl && searchEl.value.trim()){
+    const search = searchEl.value.trim().toLowerCase();
+    rows = rows.filter(c => c.pseudo.toLowerCase().includes(search));
+  }
   const el = document.getElementById(tbodyId);
   if(!el) return;
   el.innerHTML = rows.length ? rows.map(c=>`
@@ -996,7 +1066,7 @@ function renderClippersDirectory(tbodyId, allowRemove){
         ${allowRemove ? `<button class="btn btn-danger btn-sm" onclick="confirmRemoveClipper('${c.id}')">Retirer</button>` : ''}
       </td>
     </tr>
-  `).join('') : `<tr><td colspan="4"><div class="empty-state">Aucun clipper inscrit.</div></td></tr>`;
+  `).join('') : `<tr><td colspan="4"><div class="empty-state">Aucun résultat.</div></td></tr>`;
 }
 
 async function openClipperProfile(clipperId){
@@ -1014,7 +1084,7 @@ async function openClipperProfile(clipperId){
     ${SESSION.role==='admin' && (c.mobileMoneyNumber || c.mobileMoneyName) ? `
     <div class="kv-row"><span class="k">Numéro Mobile Money</span><span class="v">${c.mobileMoneyNumber || '-'}</span></div>
     <div class="kv-row"><span class="k">Titulaire du compte</span><span class="v">${c.mobileMoneyName || '-'}</span></div>` : ''}
-    <div class="kv-row"><span class="k">Statut paiement</span><span class="v">${s.remaining<=0 && s.gains>0 ? '✅ Paiement certifié' : 'En cours'}</span></div>
+    <div class="kv-row"><span class="k">Statut paiement</span><span class="v">${s.remaining<=0 && s.gains>0 ? (s.allAcknowledged ? '✅ Paiement certifié' : 'En attente de confirmation') : 'En cours'}</span></div>
     ${SESSION.role==='admin' ? `<button class="btn btn-ghost" style="width:100%; margin-top:16px;" onclick="resetClipperPassword('${c.id}')">Réinitialiser le mot de passe</button>` : ''}
     <button class="btn btn-ghost" style="width:100%; margin-top:10px;" onclick="closeModal()">Fermer</button>
   `;
@@ -1130,24 +1200,92 @@ async function removeClipper(clipperId){
   }catch(e){ showToast('Erreur lors du retrait', 'error'); }
 }
 
+function monthlyPaymentInfo(clipperId){
+  const nowKey = monthKey(new Date());
+  const vids = DATA.videos.filter(v => v.clipperId===clipperId && v.status==='validated' && monthKey(new Date(v.submittedAt))===nowKey);
+  const views = vids.reduce((a,v)=>a+(v.views||0), 0);
+  const gains = views / 1000 * (DATA.settings.pricePer1000 || 0);
+  const paymentsThisMonth = DATA.payments.filter(p => p.clipperId===clipperId && monthKey(new Date(p.date))===nowKey);
+  const paidAmount = paymentsThisMonth.reduce((a,p)=>a+(p.amount||0), 0);
+  const alreadyPaid = paymentsThisMonth.length > 0;
+  const acknowledged = paymentsThisMonth.length > 0 && paymentsThisMonth.every(p=>p.acknowledged);
+  return { gains, paidAmount, remaining: Math.max(0, gains - paidAmount), alreadyPaid, acknowledged };
+}
+function monthlyStatusBadge(m){
+  if(m.gains<=0 && !m.alreadyPaid) return '<span class="badge badge-pending">Aucun gain ce mois-ci</span>';
+  if(!m.alreadyPaid) return '<span class="badge badge-pending">Dû ce mois-ci</span>';
+  if(!m.acknowledged) return '<span class="badge badge-pending">En attente de confirmation</span>';
+  return '<span class="badge badge-paid">✅ Payé ce mois-ci</span>';
+}
 function renderPayments(){
-  document.getElementById('payments-body').innerHTML = DATA.clippers.length ? DATA.clippers.map(c=>{
-    const s = clipperStats(c.id);
-    const status = s.gains<=0 ? '<span class="badge badge-pending">Aucun gain</span>' : (s.remaining<=0 ? '<span class="badge badge-paid">✅ Paiement certifié</span>' : '<span class="badge badge-pending">Dû</span>');
+  const searchEl = document.getElementById('payments-search');
+  const statusEl = document.getElementById('payments-filter-status');
+  const search = searchEl ? searchEl.value.trim().toLowerCase() : '';
+  const statusFilter = statusEl ? statusEl.value : 'all';
+
+  let list = DATA.clippers.map(c => ({ c, m: monthlyPaymentInfo(c.id) }));
+  if(search) list = list.filter(({c}) => c.pseudo.toLowerCase().includes(search));
+  if(statusFilter === 'paid') list = list.filter(({m}) => m.alreadyPaid && m.acknowledged);
+  if(statusFilter === 'pending') list = list.filter(({m}) => !(m.alreadyPaid && m.acknowledged));
+
+  document.getElementById('payments-body').innerHTML = list.length ? list.map(({c, m})=>{
+    const status = monthlyStatusBadge(m);
+    const actionCell = m.alreadyPaid
+      ? `<span style="font-size:12px; color:var(--text-low);">Déjà payé ce mois-ci</span>`
+      : (m.gains>0 ? `<button class="btn btn-success btn-sm" onclick="openMarkPaidModal('${c.id}', ${m.gains}, '${c.pseudo.replace(/'/g,"\\'")}')">Marquer payé</button>` : '-');
     return `<tr>
       <td>${c.pseudo}</td>
-      <td class="mono">${fmtMoney(s.gains)}</td>
+      <td class="mono">${fmtMoney(m.gains)}</td>
       <td>${status}</td>
-      <td>${s.remaining>0 ? `<button class="btn btn-success btn-sm" onclick="markPaid('${c.id}', ${s.remaining})">Marquer payé</button>` : '-'}</td>
+      <td>${actionCell}</td>
     </tr>`;
-  }).join('') : `<tr><td colspan="4"><div class="empty-state">Aucun clipper.</div></td></tr>`;
+  }).join('') : `<tr><td colspan="4"><div class="empty-state">Aucun résultat.</div></td></tr>`;
+}
+
+let currentPaymentProofDataUrl = null;
+function openMarkPaidModal(clipperId, amount, pseudo){
+  const check = monthlyPaymentInfo(clipperId);
+  if(check.alreadyPaid){ showToast('Ce clipper a déjà été payé ce mois-ci.', 'error'); return; }
+  currentPaymentProofDataUrl = null;
+  document.getElementById('modal-content').innerHTML = `
+    <h3>Marquer comme payé (paiement mensuel)</h3>
+    <div class="kv-row"><span class="k">Clipper</span><span class="v">${pseudo}</span></div>
+    <div class="kv-row"><span class="k">Montant (gains du mois en cours)</span><span class="v">${fmtMoney(amount)}</span></div>
+    <div style="font-size:11.5px; color:var(--text-low); margin-top:8px;">Un seul paiement est autorisé par clipper et par mois. Aucun autre paiement ne sera possible avant le mois prochain.</div>
+    <div class="field" style="margin-top:16px;"><label class="field-label">Preuve de paiement (optionnel)</label>
+      <input type="file" accept="image/*" id="payment-proof-file" onchange="handlePaymentProofFileChange(event)">
+      <div id="payment-proof-preview" style="margin-top:8px;"></div>
+    </div>
+    <button class="btn btn-success" style="width:100%; margin-top:10px;" onclick="markPaid('${clipperId}', ${amount})">Confirmer le paiement</button>
+    <button class="btn btn-ghost" style="width:100%; margin-top:10px;" onclick="closeModal()">Annuler</button>
+  `;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+async function handlePaymentProofFileChange(e){
+  const file = e.target.files[0];
+  const preview = document.getElementById('payment-proof-preview');
+  currentPaymentProofDataUrl = null;
+  if(!file){ preview.innerHTML=''; return; }
+  preview.innerHTML = '<div style="font-size:12.5px; color:var(--text-mid);">Compression de l\'image...</div>';
+  try{
+    const dataUrl = await compressImage(file);
+    currentPaymentProofDataUrl = dataUrl;
+    preview.innerHTML = `<img src="${dataUrl}" style="max-width:100%; max-height:160px; border-radius:8px; border:1px solid var(--border-soft); display:block;">`;
+  }catch(err){
+    preview.innerHTML = `<div style="font-size:12.5px; color:var(--red);">${err.message}</div>`;
+    e.target.value = '';
+  }
 }
 async function markPaid(clipperId, amount){
+  const check = monthlyPaymentInfo(clipperId);
+  if(check.alreadyPaid){ showToast('Ce clipper a déjà été payé ce mois-ci.', 'error'); closeModal(); renderAll(); return; }
   try{
-    const row = await sbInsert('payments', { clipper_id:clipperId, amount, date:new Date().toISOString(), verified:true });
+    const row = await sbInsert('payments', { clipper_id:clipperId, amount, date:new Date().toISOString(), verified:true, proof_image: currentPaymentProofDataUrl || null, acknowledged:false });
     DATA.payments.push(mapPayment(row));
+    currentPaymentProofDataUrl = null;
+    closeModal();
     renderAll();
-    showToast('Paiement enregistré. ✅ Paiement vérifié.');
+    showToast('Paiement mensuel enregistré. En attente de confirmation du clipper.');
   }catch(e){ showToast('Erreur lors de l\'enregistrement du paiement', 'error'); }
 }
 
@@ -1318,6 +1456,7 @@ function renderClipperVideos(){
       <td>${v.title}</td><td>${platformTag(v.platform, v.url)}</td><td class="mono">${fmtNum(v.views)}</td><td>${statusBadge(v.status)}</td>
       <td style="display:flex; gap:6px; flex-wrap:wrap;">
         <button class="btn btn-ghost btn-sm" onclick="viewProof('${v.id}')">Voir preuve</button>
+        ${v.status==='rejected' && v.rejectionReason ? `<button class="btn btn-ghost btn-sm" onclick="viewRejectionReason('${v.id}')">Voir motif</button>` : ''}
         ${v.status!=='pending' ? `<button class="btn btn-ghost btn-sm" onclick="editVideo('${v.id}')">Modifier les vues</button>` : ''}
       </td>
     </tr>`).join('') : `<tr><td colspan="5"><div class="empty-state"><div class="ic">▤</div>Aucune vidéo soumise.</div></td></tr>`;
@@ -1345,12 +1484,31 @@ function renderClipperProfil(){
   document.getElementById('profil-pseudo').textContent = c.pseudo;
   document.getElementById('profil-joined').textContent = 'Inscrit le ' + new Date(c.joinedAt).toLocaleDateString('fr-FR');
   document.getElementById('profil-rank').textContent = '#' + rank;
-  document.getElementById('profil-paid').innerHTML = s.remaining<=0 && s.gains>0 ? '<span class="badge badge-paid">✅ Paiement certifié</span>' : '<span class="badge badge-pending">En cours</span>';
+  document.getElementById('profil-paid').innerHTML = paymentStatusBadge(s);
 
   const pays = DATA.payments.filter(p=>p.clipperId===SESSION.clipperId).sort((a,b)=>new Date(b.date)-new Date(a.date));
   document.getElementById('profil-payments-body').innerHTML = pays.length ? pays.map(p=>`
-    <tr><td>${new Date(p.date).toLocaleDateString('fr-FR')}</td><td class="mono">${fmtMoney(p.amount)}</td><td><span class="badge badge-paid">✅ Vérifié</span></td></tr>
-  `).join('') : `<tr><td colspan="3"><div class="empty-state">Aucun paiement pour le moment.</div></td></tr>`;
+    <tr><td>${new Date(p.date).toLocaleDateString('fr-FR')}</td><td class="mono">${fmtMoney(p.amount)}</td><td>${p.acknowledged ? '<span class="badge badge-paid">✅ Confirmé</span>' : '<span class="badge badge-pending">En attente de ta confirmation</span>'}</td>
+    <td style="display:flex; gap:6px; flex-wrap:wrap;">
+      ${p.proofImage ? `<button class="btn btn-ghost btn-sm" onclick="viewPaymentProof('${p.id}')">Voir preuve</button>` : ''}
+      ${!p.acknowledged ? `<button class="btn btn-success btn-sm" onclick="acknowledgePayment('${p.id}')">J'ai bien reçu</button>` : ''}
+    </td></tr>
+  `).join('') : `<tr><td colspan="4"><div class="empty-state">Aucun paiement pour le moment.</div></td></tr>`;
+}
+async function acknowledgePayment(paymentId){
+  const p = DATA.payments.find(x=>x.id===paymentId);
+  if(!p) return;
+  try{
+    await sbUpdate('payments', paymentId, { acknowledged:true });
+    p.acknowledged = true;
+    renderAll();
+    showToast('Réception confirmée. Merci !');
+  }catch(e){ showToast('Erreur lors de la confirmation', 'error'); }
+}
+function viewPaymentProof(paymentId){
+  const p = DATA.payments.find(x=>x.id===paymentId);
+  document.getElementById('modal-content').innerHTML = `<h3>Preuve de paiement</h3>${p && p.proofImage ? `<img src="${p.proofImage}" style="max-width:100%; border-radius:8px; border:1px solid var(--border-soft);">` : '<div class="empty-state">Aucune preuve disponible.</div>'}<button class="btn btn-ghost" style="width:100%; margin-top:14px;" onclick="closeModal()">Fermer</button>`;
+  document.getElementById('modal-overlay').classList.add('show');
 }
 
 async function updateOwnAccount(){
