@@ -1,798 +1,1975 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Alpdy Agency</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg-0:#FFFFFF;
-    --bg-1:#F5F5FA;
-    --bg-2:#EEEEF5;
-    --surface:#FFFFFF;
-    --surface-hover:#F7F7FC;
-    --border:#E3E3EE;
-    --border-soft:#ECECF4;
-    --violet:#7C5CFC;
-    --violet-dim:#4C3D9E;
-    --violet-glow:rgba(124,92,252,0.10);
-    --blue:#2F80F0;
-    --teal:#0FA8A0;
-    --coral:#F2643B;
-    --pink:#E23C82;
-    --text-hi:#15151F;
-    --text-mid:#67667E;
-    --text-low:#9C9BAE;
-    --green:#1FA971;
-    --amber:#B26B00;
-    --red:#D6304A;
-    --gold:#B8862E;
-    --silver:#7C7E8C;
-    --bronze:#A15A2E;
-    --radius:12px;
-    --radius-sm:8px;
-    --card-shadow:0 1px 3px rgba(20,20,40,0.05), 0 1px 2px rgba(20,20,40,0.04);
-  }
-  *{box-sizing:border-box; margin:0; padding:0;}
-  body{
-    font-family:'Inter',sans-serif;
-    background:var(--bg-0);
-    color:var(--text-hi);
-    min-height:100vh;
-  }
-  ::selection{ background:var(--violet); color:#fff; }
-  ::-webkit-scrollbar{ width:8px; height:8px; }
-  ::-webkit-scrollbar-thumb{ background:var(--border); border-radius:8px; }
-  .mono{ font-family:'JetBrains Mono',monospace; }
-  .disp{ font-family:'Space Grotesk',sans-serif; }
-
-  #app{ display:none; }
-  #app.ready{ display:block; }
-
-  /* ---------- LOGIN ---------- */
-  #login-screen{
-    min-height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:24px;
-    position:relative;
-    overflow:hidden;
-  }
-  #login-screen::before{
-    content:"";
-    position:absolute;
-    top:-30%; left:50%; transform:translateX(-50%);
-    width:900px; height:900px;
-    background:radial-gradient(circle, var(--violet-glow) 0%, transparent 65%);
-    pointer-events:none;
-  }
-  #login-screen{ background:var(--bg-1); }
-  .login-card{
-    width:100%; max-width:420px;
-    background:var(--surface);
-    border:1px solid var(--border);
-    border-radius:20px;
-    padding:40px 36px;
-    position:relative;
-    z-index:1;
-    box-shadow:0 4px 24px rgba(20,20,40,0.06);
-  }
-  .brand-mark{
-    display:flex; align-items:center; gap:10px; margin-bottom:28px;
-  }
-  .brand-mark .dot{
-    width:34px; height:34px; border-radius:9px;
-    background:linear-gradient(135deg, var(--violet), var(--blue));
-    display:flex; align-items:center; justify-content:center;
-    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px; color:#fff;
-  }
-  .brand-mark span{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:19px; letter-spacing:-0.01em; }
-  .login-card h1{ font-family:'Space Grotesk',sans-serif; font-size:24px; font-weight:600; margin-bottom:6px; letter-spacing:-0.01em; }
-  .login-card p.sub{ color:var(--text-mid); font-size:14px; margin-bottom:28px; }
-
-  .role-toggle{ display:flex; gap:8px; margin-bottom:22px; background:var(--bg-1); padding:4px; border-radius:10px; border:1px solid var(--border-soft); }
-  .role-toggle button{
-    flex:1; padding:9px; border:none; background:transparent; color:var(--text-mid);
-    font-size:13px; font-weight:600; border-radius:8px; cursor:pointer; transition:.15s;
-    font-family:'Inter',sans-serif;
-  }
-  .role-toggle button.active{ background:var(--violet); color:#fff; }
-
-  .filter-bar{ display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
-  .filter-bar input[type=text]{ flex:1; min-width:220px; }
-  .filter-bar select{ min-width:160px; background:var(--surface); border:1px solid var(--border); color:var(--text-hi); padding:10px 12px; border-radius:9px; font-size:13.5px; font-family:'Inter',sans-serif; }
-  .filter-bar select:focus{ border-color:var(--violet); box-shadow:0 0 0 3px var(--violet-glow); }
-
-  .period-dropdown-wrap{ position:relative; display:inline-block; margin-bottom:18px; }
-  .period-dropdown-btn{
-    display:flex; align-items:center; gap:9px; padding:9px 14px; border-radius:10px; border:1px solid var(--border);
-    background:var(--surface); color:var(--text-hi); font-size:13.5px; font-weight:600; cursor:pointer; box-shadow:var(--card-shadow);
-    font-family:'Inter',sans-serif;
-  }
-  .period-dropdown-btn:hover{ background:var(--surface-hover); }
-  .period-dropdown-btn .chev{ color:var(--text-mid); font-size:11px; margin-left:2px; }
-  .period-dropdown-menu{
-    display:none; position:absolute; top:calc(100% + 6px); left:0; min-width:220px; max-height:320px; overflow-y:auto;
-    background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:0 12px 30px rgba(20,20,40,0.12);
-    padding:6px; z-index:20;
-  }
-  .period-dropdown-menu.show{ display:block; }
-  .period-option{
-    display:flex; align-items:center; gap:9px; padding:9px 10px; border-radius:8px; font-size:13.5px; color:var(--text-hi);
-    cursor:pointer; font-weight:500;
-  }
-  .period-option:hover{ background:var(--bg-1); }
-  .period-option.active{ background:var(--violet-glow); color:var(--violet); font-weight:600; }
-  .period-option .check{ width:14px; font-size:12px; color:var(--violet); flex-shrink:0; }
-
-  label.field-label{ display:block; font-size:12px; color:var(--text-mid); margin-bottom:6px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
-  select, input[type=text], input[type=number], input[type=url], textarea{
-    width:100%; background:var(--bg-1); border:1px solid var(--border); color:var(--text-hi);
-    padding:11px 13px; border-radius:9px; font-size:14px; font-family:'Inter',sans-serif; outline:none;
-    transition:.15s;
-  }
-  select:focus, input:focus, textarea:focus{ border-color:var(--violet); box-shadow:0 0 0 3px var(--violet-glow); }
-  input[type=file]{ width:100%; background:var(--bg-1); border:1px solid var(--border); color:var(--text-mid); padding:9px 11px; border-radius:9px; font-size:13px; font-family:'Inter',sans-serif; }
-  input[type=file]::file-selector-button{ background:var(--surface); border:1px solid var(--border); color:var(--text-hi); padding:6px 12px; border-radius:7px; font-size:12.5px; font-weight:600; margin-right:10px; cursor:pointer; }
-  .field{ margin-bottom:16px; }
-
-  .btn{
-    display:inline-flex; align-items:center; justify-content:center; gap:8px;
-    padding:11px 18px; border-radius:9px; border:none; font-size:14px; font-weight:600;
-    cursor:pointer; font-family:'Inter',sans-serif; transition:.15s;
-  }
-  .btn-primary{ background:linear-gradient(135deg, var(--violet), #6A4CE0); color:#fff; width:100%; }
-  .btn-primary:hover{ filter:brightness(1.1); }
-  .btn-ghost{ background:var(--bg-1); color:var(--text-hi); border:1px solid var(--border); }
-  .btn-ghost:hover{ background:var(--surface-hover); }
-  .btn-sm{ padding:7px 12px; font-size:12.5px; }
-  .btn-danger{ background:rgba(240,73,90,0.12); color:var(--red); border:1px solid rgba(240,73,90,0.3); }
-  .btn-success{ background:rgba(46,212,122,0.12); color:var(--green); border:1px solid rgba(46,212,122,0.3); }
-
-  .hint{ font-size:12.5px; color:var(--text-low); margin-top:14px; text-align:center; }
-
-  /* ---------- LAYOUT ---------- */
-  #shell{ display:flex; min-height:100vh; }
-  #sidebar{
-    width:236px; background:var(--bg-1); border-right:1px solid var(--border-soft);
-    display:flex; flex-direction:column; padding:20px 14px; position:sticky; top:0; height:100vh;
-  }
-  #sidebar .brand-mark{ margin-bottom:30px; padding:0 8px; }
-  .nav-section-label{ font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-low); margin:16px 10px 8px; font-weight:600; }
-  .nav-item{
-    display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:9px; cursor:pointer;
-    color:var(--text-mid); font-size:14px; font-weight:500; margin-bottom:2px; transition:.15s;
-    border:1px solid transparent;
-  }
-  .nav-item:hover{ background:var(--surface); color:var(--text-hi); }
-  .nav-item.active{ background:var(--violet-glow); color:var(--violet); border-color:rgba(124,92,252,0.3); }
-  .nav-item .ic{ width:18px; text-align:center; font-size:15px; }
-  #sidebar-footer{ margin-top:auto; padding-top:14px; border-top:1px solid var(--border-soft); }
-  .user-chip{ display:flex; align-items:center; gap:10px; padding:8px; border-radius:9px; }
-  .avatar{
-    width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--violet),var(--blue));
-    display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#fff; flex-shrink:0;
-  }
-  .user-chip .name{ font-size:13px; font-weight:600; }
-  .user-chip .role{ font-size:11px; color:var(--text-low); }
-  .logout-link{ font-size:12px; color:var(--text-low); cursor:pointer; margin-top:8px; padding:0 8px; display:block; }
-  .logout-link:hover{ color:var(--red); }
-  .sync-status{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-low); padding:8px 8px 0; }
-  .sync-dot{ width:7px; height:7px; border-radius:50%; background:var(--green); flex-shrink:0; box-shadow:0 0 0 0 rgba(46,212,122,0.5); animation:pulse-dot 2s infinite; }
-  @keyframes pulse-dot{ 0%{ box-shadow:0 0 0 0 rgba(46,212,122,0.45); } 70%{ box-shadow:0 0 0 6px rgba(46,212,122,0); } 100%{ box-shadow:0 0 0 0 rgba(46,212,122,0); } }
-
-  #main{ flex:1; padding:28px 34px; max-width:1180px; }
-  .page-head{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
-  .page-head h2{ font-family:'Space Grotesk',sans-serif; font-size:22px; font-weight:600; letter-spacing:-0.01em; }
-  .page-head p{ color:var(--text-mid); font-size:13.5px; margin-top:3px; }
-
-  .view{ display:none; }
-  .view.active{ display:block; }
-
-  /* ---------- CARDS / GRID ---------- */
-  .grid{ display:grid; gap:14px; }
-  .grid-4{ grid-template-columns:repeat(4,1fr); }
-  .grid-3{ grid-template-columns:repeat(3,1fr); }
-  .grid-2{ grid-template-columns:2fr 1fr; }
-  @media(max-width:1000px){ .grid-4{grid-template-columns:repeat(2,1fr);} .grid-3{grid-template-columns:1fr;} .grid-2{grid-template-columns:1fr;} }
-
-  .card{ background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius); padding:18px 20px; box-shadow:var(--card-shadow); }
-  .stat-card .stat-label{ font-size:12px; color:var(--text-mid); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; }
-  .stat-card .stat-value{ font-family:'JetBrains Mono',monospace; font-size:26px; font-weight:600; letter-spacing:-0.02em; }
-  .stat-card .stat-sub{ font-size:12px; color:var(--text-low); margin-top:6px; }
-  .stat-icon{ width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:13px; }
-
-  .card-title{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15px; margin-bottom:14px; }
-
-  table{ width:100%; border-collapse:collapse; font-size:13.5px; }
-  th{ text-align:left; color:var(--text-low); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; padding:0 10px 10px; border-bottom:1px solid var(--border-soft); }
-  td{ padding:12px 10px; border-bottom:1px solid var(--border-soft); }
-  tr:last-child td{ border-bottom:none; }
-  tbody tr:hover{ background:var(--bg-1); }
-
-  .badge{ display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:99px; font-size:11.5px; font-weight:600; }
-  .badge-pending{ background:rgba(245,166,35,0.13); color:var(--amber); }
-  .badge-validated{ background:rgba(46,212,122,0.13); color:var(--green); }
-  .badge-rejected{ background:rgba(240,73,90,0.13); color:var(--red); }
-  .badge-paid{ background:rgba(124,92,252,0.15); color:var(--violet); }
-
-  .progress-track{ height:10px; background:var(--bg-1); border-radius:99px; overflow:hidden; border:1px solid var(--border-soft); }
-  .progress-fill{ height:100%; background:linear-gradient(90deg,var(--violet),var(--blue)); border-radius:99px; transition:width .4s; }
-
-  .empty-state{ text-align:center; padding:40px 20px; color:var(--text-low); }
-  .empty-state .ic{ font-size:26px; margin-bottom:8px; }
-
-  /* podium */
-  .podium-wrap{ display:flex; align-items:flex-end; justify-content:center; gap:14px; margin:10px 0 26px; }
-  .podium-slot{ display:flex; flex-direction:column; align-items:center; width:150px; }
-  .podium-slot .avatar{ width:52px; height:52px; font-size:17px; margin-bottom:10px; }
-  .podium-slot .pname{ font-weight:600; font-size:14px; margin-bottom:4px; text-align:center; }
-  .podium-slot .pviews{ font-size:12px; color:var(--text-mid); margin-bottom:10px; font-family:'JetBrains Mono',monospace; }
-  .podium-bar{ width:100%; border-radius:10px 10px 0 0; display:flex; align-items:flex-start; justify-content:center; padding-top:10px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:20px; }
-  .p1 .podium-bar{ height:110px; background:linear-gradient(180deg, rgba(232,196,104,0.22), rgba(232,196,104,0.05)); border:1px solid rgba(232,196,104,0.35); color:var(--gold); }
-  .p2 .podium-bar{ height:80px; background:linear-gradient(180deg, rgba(199,203,216,0.18), rgba(199,203,216,0.04)); border:1px solid rgba(199,203,216,0.3); color:var(--silver); }
-  .p3 .podium-bar{ height:58px; background:linear-gradient(180deg, rgba(210,139,92,0.2), rgba(210,139,92,0.04)); border:1px solid rgba(210,139,92,0.35); color:var(--bronze); }
-
-  .rank-num{ font-family:'JetBrains Mono',monospace; font-weight:600; color:var(--text-mid); width:22px; display:inline-block; }
-
-  .modal-overlay{
-    position:fixed; inset:0; background:rgba(5,5,12,0.7); display:none; align-items:center; justify-content:center; z-index:50; padding:20px;
-  }
-  .modal-overlay.show{ display:flex; }
-  .modal{ background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:26px; width:100%; max-width:480px; max-height:88vh; overflow-y:auto; }
-  .modal h3{ font-family:'Space Grotesk',sans-serif; font-size:17px; margin-bottom:16px; }
-
-  .kv-row{ display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border-soft); font-size:13.5px; }
-  .kv-row:last-child{ border-bottom:none; }
-  .kv-row .k{ color:var(--text-mid); }
-  .kv-row .v{ font-weight:600; }
-
-  .platform-tag{ font-size:11px; padding:2px 7px; border-radius:5px; background:var(--bg-1); color:var(--text-mid); border:1px solid var(--border-soft); display:inline-block; }
-  a.platform-tag:hover{ filter:brightness(0.85); text-decoration:none; }
-
-  .toast{
-    position:fixed; bottom:24px; right:24px; background:var(--surface); border:1px solid var(--border);
-    padding:13px 18px; border-radius:10px; font-size:13.5px; z-index:100; display:none; box-shadow:0 8px 30px rgba(0,0,0,0.4);
-  }
-  .toast.show{ display:block; }
-  .toast.success{ border-color:rgba(46,212,122,0.4); color:var(--green); }
-  .toast.error{ border-color:rgba(240,73,90,0.4); color:var(--red); }
-
-  .divider{ height:1px; background:var(--border-soft); margin:22px 0; }
-
-  .global-note{ font-size:12.5px; color:var(--text-low); margin-top:10px; font-style:italic; line-height:1.5; }
-
-  .mobile-note{ display:none; }
-  @media(max-width:780px){
-    #shell{ flex-direction:column; }
-    #sidebar{ width:100%; height:auto; position:relative; flex-direction:row; align-items:center; overflow-x:auto; padding:12px; gap:6px; }
-    #sidebar .brand-mark{ margin-bottom:0; }
-    .nav-section-label{ display:none; }
-    #sidebar-footer{ display:none; }
-    #main{ padding:18px; }
-    .grid-4, .grid-3, .grid-2{ grid-template-columns:1fr; }
-    .podium-wrap{ flex-wrap:wrap; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpdy Agency</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <style>
+         :root {
+            --bg-0: #FFFFFF;
+            --bg-1: #F5F5FA;
+            --bg-2: #EEEEF5;
+            --surface: #FFFFFF;
+            --surface-hover: #F7F7FC;
+            --border: #E3E3EE;
+            --border-soft: #ECECF4;
+            --violet: #7C5CFC;
+            --violet-dim: #4C3D9E;
+            --violet-glow: rgba(124, 92, 252, 0.10);
+            --blue: #2F80F0;
+            --teal: #0FA8A0;
+            --coral: #F2643B;
+            --pink: #E23C82;
+            --text-hi: #15151F;
+            --text-mid: #67667E;
+            --text-low: #9C9BAE;
+            --green: #1FA971;
+            --amber: #B26B00;
+            --red: #D6304A;
+            --gold: #B8862E;
+            --silver: #7C7E8C;
+            --bronze: #A15A2E;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --card-shadow: 0 1px 3px rgba(20, 20, 40, 0.05), 0 1px 2px rgba(20, 20, 40, 0.04);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-0);
+            color: var(--text-hi);
+            min-height: 100vh;
+        }
+        
+         ::selection {
+            background: var(--violet);
+            color: #fff;
+        }
+        
+         ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+         ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 8px;
+        }
+        
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .disp {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        
+        #app {
+            display: none;
+        }
+        
+        #app.ready {
+            display: block;
+        }
+        /* ---------- LOGIN ---------- */
+        
+        #login-screen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #login-screen::before {
+            content: "";
+            position: absolute;
+            top: -30%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 900px;
+            height: 900px;
+            background: radial-gradient(circle, var(--violet-glow) 0%, transparent 65%);
+            pointer-events: none;
+        }
+        
+        #login-screen {
+            background: var(--bg-1);
+        }
+        
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px 36px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 4px 24px rgba(20, 20, 40, 0.06);
+        }
+        
+        .brand-mark {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+        
+        .brand-mark .dot {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            background: linear-gradient(135deg, var(--violet), var(--blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            color: #fff;
+        }
+        
+        .brand-mark span {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 19px;
+            letter-spacing: -0.01em;
+        }
+        
+        .login-card h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            letter-spacing: -0.01em;
+        }
+        
+        .login-card p.sub {
+            color: var(--text-mid);
+            font-size: 14px;
+            margin-bottom: 28px;
+        }
+        
+        .role-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 22px;
+            background: var(--bg-1);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border-soft);
+        }
+        
+        .role-toggle button {
+            flex: 1;
+            padding: 9px;
+            border: none;
+            background: transparent;
+            color: var(--text-mid);
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: .15s;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .role-toggle button.active {
+            background: var(--violet);
+            color: #fff;
+        }
+        
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-bar input[type=text] {
+            flex: 1;
+            min-width: 220px;
+        }
+        
+        .filter-bar select {
+            min-width: 160px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-hi);
+            padding: 10px 12px;
+            border-radius: 9px;
+            font-size: 13.5px;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .filter-bar select:focus {
+            border-color: var(--violet);
+            box-shadow: 0 0 0 3px var(--violet-glow);
+        }
+        
+        .period-dropdown-wrap {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 18px;
+        }
+        
+        .period-dropdown-btn {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 9px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-hi);
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: var(--card-shadow);
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .period-dropdown-btn:hover {
+            background: var(--surface-hover);
+        }
+        
+        .period-dropdown-btn .chev {
+            color: var(--text-mid);
+            font-size: 11px;
+            margin-left: 2px;
+        }
+        
+        .period-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            min-width: 220px;
+            max-height: 320px;
+            overflow-y: auto;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(20, 20, 40, 0.12);
+            padding: 6px;
+            z-index: 20;
+        }
+        
+        .period-dropdown-menu.show {
+            display: block;
+        }
+        
+        .period-option {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 9px 10px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            color: var(--text-hi);
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .period-option:hover {
+            background: var(--bg-1);
+        }
+        
+        .period-option.active {
+            background: var(--violet-glow);
+            color: var(--violet);
+            font-weight: 600;
+        }
+        
+        .period-option .check {
+            width: 14px;
+            font-size: 12px;
+            color: var(--violet);
+            flex-shrink: 0;
+        }
+        
+        label.field-label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-mid);
+            margin-bottom: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        
+        select,
+        input[type=text],
+        input[type=number],
+        input[type=url],
+        textarea {
+            width: 100%;
+            background: var(--bg-1);
+            border: 1px solid var(--border);
+            color: var(--text-hi);
+            padding: 11px 13px;
+            border-radius: 9px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: .15s;
+        }
+        
+        select:focus,
+        input:focus,
+        textarea:focus {
+            border-color: var(--violet);
+            box-shadow: 0 0 0 3px var(--violet-glow);
+        }
+        
+        input[type=file] {
+            width: 100%;
+            background: var(--bg-1);
+            border: 1px solid var(--border);
+            color: var(--text-mid);
+            padding: 9px 11px;
+            border-radius: 9px;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        input[type=file]::file-selector-button {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-hi);
+            padding: 6px 12px;
+            border-radius: 7px;
+            font-size: 12.5px;
+            font-weight: 600;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        
+        .field {
+            margin-bottom: 16px;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 18px;
+            border-radius: 9px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: .15s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--violet), #6A4CE0);
+            color: #fff;
+            width: 100%;
+        }
+        
+        .btn-primary:hover {
+            filter: brightness(1.1);
+        }
+        
+        .btn-ghost {
+            background: var(--bg-1);
+            color: var(--text-hi);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-ghost:hover {
+            background: var(--surface-hover);
+        }
+        
+        .btn-sm {
+            padding: 7px 12px;
+            font-size: 12.5px;
+        }
+        
+        .btn-danger {
+            background: rgba(240, 73, 90, 0.12);
+            color: var(--red);
+            border: 1px solid rgba(240, 73, 90, 0.3);
+        }
+        
+        .btn-success {
+            background: rgba(46, 212, 122, 0.12);
+            color: var(--green);
+            border: 1px solid rgba(46, 212, 122, 0.3);
+        }
+        
+        .hint {
+            font-size: 12.5px;
+            color: var(--text-low);
+            margin-top: 14px;
+            text-align: center;
+        }
+        /* ---------- LAYOUT ---------- */
+        
+        #shell {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        #sidebar {
+            width: 236px;
+            background: var(--bg-1);
+            border-right: 1px solid var(--border-soft);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 14px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+        
+        #sidebar .brand-mark {
+            margin-bottom: 30px;
+            padding: 0 8px;
+        }
+        
+        .nav-section-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--text-low);
+            margin: 16px 10px 8px;
+            font-weight: 600;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 9px;
+            cursor: pointer;
+            color: var(--text-mid);
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 2px;
+            transition: .15s;
+            border: 1px solid transparent;
+        }
+        
+        .nav-item:hover {
+            background: var(--surface);
+            color: var(--text-hi);
+        }
+        
+        .nav-item.active {
+            background: var(--violet-glow);
+            color: var(--violet);
+            border-color: rgba(124, 92, 252, 0.3);
+        }
+        
+        .nav-item .ic {
+            width: 18px;
+            text-align: center;
+            font-size: 15px;
+        }
+        
+        #sidebar-footer {
+            margin-top: auto;
+            padding-top: 14px;
+            border-top: 1px solid var(--border-soft);
+        }
+        
+        .user-chip {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 9px;
+        }
+        
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--violet), var(--blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        
+        .user-chip .name {
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .user-chip .role {
+            font-size: 11px;
+            color: var(--text-low);
+        }
+        
+        .logout-link {
+            font-size: 12px;
+            color: var(--text-low);
+            cursor: pointer;
+            margin-top: 8px;
+            padding: 0 8px;
+            display: block;
+        }
+        
+        .logout-link:hover {
+            color: var(--red);
+        }
+        
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--text-low);
+            padding: 8px 8px 0;
+        }
+        
+        .sync-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            flex-shrink: 0;
+            box-shadow: 0 0 0 0 rgba(46, 212, 122, 0.5);
+            animation: pulse-dot 2s infinite;
+        }
+        
+        @keyframes pulse-dot {
+            0% {
+                box-shadow: 0 0 0 0 rgba(46, 212, 122, 0.45);
+            }
+            70% {
+                box-shadow: 0 0 0 6px rgba(46, 212, 122, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(46, 212, 122, 0);
+            }
+        }
+        
+        #main {
+            flex: 1;
+            padding: 28px 34px;
+            max-width: 1180px;
+        }
+        
+        .page-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .page-head h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+        
+        .page-head p {
+            color: var(--text-mid);
+            font-size: 13.5px;
+            margin-top: 3px;
+        }
+        
+        .view {
+            display: none;
+        }
+        
+        .view.active {
+            display: block;
+        }
+        /* ---------- CARDS / GRID ---------- */
+        
+        .grid {
+            display: grid;
+            gap: 14px;
+        }
+        
+        .grid-4 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+        
+        .grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        
+        .grid-2 {
+            grid-template-columns: 2fr 1fr;
+        }
+        
+        @media(max-width:1000px) {
+            .grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .stat-card .stat-label {
+            font-size: 12px;
+            color: var(--text-mid);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .stat-card .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 26px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+        
+        .stat-card .stat-sub {
+            font-size: 12px;
+            color: var(--text-low);
+            margin-top: 6px;
+        }
+        
+        .stat-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+        }
+        
+        .card-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 14px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+        }
+        
+        th {
+            text-align: left;
+            color: var(--text-low);
+            font-weight: 600;
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            padding: 0 10px 10px;
+            border-bottom: 1px solid var(--border-soft);
+        }
+        
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--border-soft);
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tbody tr:hover {
+            background: var(--bg-1);
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 9px;
+            border-radius: 99px;
+            font-size: 11.5px;
+            font-weight: 600;
+        }
+        
+        .badge-pending {
+            background: rgba(245, 166, 35, 0.13);
+            color: var(--amber);
+        }
+        
+        .badge-validated {
+            background: rgba(46, 212, 122, 0.13);
+            color: var(--green);
+        }
+        
+        .badge-rejected {
+            background: rgba(240, 73, 90, 0.13);
+            color: var(--red);
+        }
+        
+        .badge-paid {
+            background: rgba(124, 92, 252, 0.15);
+            color: var(--violet);
+        }
+        
+        .progress-track {
+            height: 10px;
+            background: var(--bg-1);
+            border-radius: 99px;
+            overflow: hidden;
+            border: 1px solid var(--border-soft);
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--violet), var(--blue));
+            border-radius: 99px;
+            transition: width .4s;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-low);
+        }
+        
+        .empty-state .ic {
+            font-size: 26px;
+            margin-bottom: 8px;
+        }
+        /* podium */
+        
+        .podium-wrap {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 14px;
+            margin: 10px 0 26px;
+        }
+        
+        .podium-slot {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 150px;
+        }
+        
+        .podium-slot .avatar {
+            width: 52px;
+            height: 52px;
+            font-size: 17px;
+            margin-bottom: 10px;
+        }
+        
+        .podium-slot .pname {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+            text-align: center;
+        }
+        
+        .podium-slot .pviews {
+            font-size: 12px;
+            color: var(--text-mid);
+            margin-bottom: 10px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .podium-bar {
+            width: 100%;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 10px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 20px;
+        }
+        
+        .p1 .podium-bar {
+            height: 110px;
+            background: linear-gradient(180deg, rgba(232, 196, 104, 0.22), rgba(232, 196, 104, 0.05));
+            border: 1px solid rgba(232, 196, 104, 0.35);
+            color: var(--gold);
+        }
+        
+        .p2 .podium-bar {
+            height: 80px;
+            background: linear-gradient(180deg, rgba(199, 203, 216, 0.18), rgba(199, 203, 216, 0.04));
+            border: 1px solid rgba(199, 203, 216, 0.3);
+            color: var(--silver);
+        }
+        
+        .p3 .podium-bar {
+            height: 58px;
+            background: linear-gradient(180deg, rgba(210, 139, 92, 0.2), rgba(210, 139, 92, 0.04));
+            border: 1px solid rgba(210, 139, 92, 0.35);
+            color: var(--bronze);
+        }
+        
+        .rank-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: var(--text-mid);
+            width: 22px;
+            display: inline-block;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 5, 12, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            padding: 20px;
+        }
+        
+        .modal-overlay.show {
+            display: flex;
+        }
+        
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 26px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 88vh;
+            overflow-y: auto;
+        }
+        
+        .modal h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 17px;
+            margin-bottom: 16px;
+        }
+        
+        .kv-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 9px 0;
+            border-bottom: 1px solid var(--border-soft);
+            font-size: 13.5px;
+        }
+        
+        .kv-row:last-child {
+            border-bottom: none;
+        }
+        
+        .kv-row .k {
+            color: var(--text-mid);
+        }
+        
+        .kv-row .v {
+            font-weight: 600;
+        }
+        
+        .platform-tag {
+            font-size: 11px;
+            padding: 2px 7px;
+            border-radius: 5px;
+            background: var(--bg-1);
+            color: var(--text-mid);
+            border: 1px solid var(--border-soft);
+            display: inline-block;
+        }
+        
+        a.platform-tag:hover {
+            filter: brightness(0.85);
+            text-decoration: none;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 13px 18px;
+            border-radius: 10px;
+            font-size: 13.5px;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        }
+        
+        .toast.show {
+            display: block;
+        }
+        
+        .toast.success {
+            border-color: rgba(46, 212, 122, 0.4);
+            color: var(--green);
+        }
+        
+        .toast.error {
+            border-color: rgba(240, 73, 90, 0.4);
+            color: var(--red);
+        }
+        
+        .divider {
+            height: 1px;
+            background: var(--border-soft);
+            margin: 22px 0;
+        }
+        
+        .global-note {
+            font-size: 12.5px;
+            color: var(--text-low);
+            margin-top: 10px;
+            font-style: italic;
+            line-height: 1.5;
+        }
+        
+        .mobile-note {
+            display: none;
+        }
+        
+        @media(max-width:780px) {
+            #shell {
+                flex-direction: column;
+            }
+            #sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                flex-direction: row;
+                align-items: center;
+                overflow-x: auto;
+                padding: 12px;
+                gap: 6px;
+            }
+            #sidebar .brand-mark {
+                margin-bottom: 0;
+            }
+            .nav-section-label {
+                display: none;
+            }
+            #sidebar-footer {
+                display: none;
+            }
+            #main {
+                padding: 18px;
+            }
+            .grid-4,
+            .grid-3,
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            .podium-wrap {
+                flex-wrap: wrap;
+            }
+        }
+    
+        /* ---------- EXPORT ---------- */
+        .export-card { padding: 22px 24px; }
+        .export-sub { color: var(--text-mid); font-size: 13.5px; margin: -6px 0 18px; }
+        .export-select {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-hi);
+            padding: 10px 12px;
+            border-radius: 9px;
+            font-size: 13.5px;
+            font-family: 'Inter', sans-serif;
+        }
+        .export-select:focus { outline: none; border-color: var(--violet); box-shadow: 0 0 0 3px var(--violet-glow); }
+        .export-summary { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 20px; }
+        .export-chip {
+            display: inline-flex; align-items: baseline; gap: 6px;
+            background: var(--bg-1); border: 1px solid var(--border-soft);
+            padding: 7px 12px; border-radius: 99px; font-size: 12px; color: var(--text-mid);
+        }
+        .export-chip b { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-hi); font-weight: 600; }
+        .export-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        .export-tile {
+            position: relative; text-align: left; cursor: pointer;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 14px; padding: 18px; font-family: 'Inter', sans-serif; color: var(--text-hi);
+            transition: transform .15s, box-shadow .15s, border-color .15s;
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .export-tile:hover { transform: translateY(-2px); border-color: var(--violet); box-shadow: 0 8px 22px rgba(124, 92, 252, 0.14); }
+        .export-tile:disabled { opacity: .6; cursor: progress; transform: none; }
+        .export-ic {
+            width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center;
+            font-size: 20px; margin-bottom: 6px;
+        }
+        .export-tile.xl .export-ic { background: rgba(31, 169, 113, 0.12); }
+        .export-tile.pdf .export-ic { background: rgba(214, 48, 74, 0.10); }
+        .export-tile.csv .export-ic { background: rgba(47, 128, 240, 0.12); }
+        .export-tile h4 { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 600; }
+        .export-tile p { font-size: 12.5px; color: var(--text-mid); line-height: 1.5; flex: 1; }
+        .export-tile .go { font-size: 12.5px; font-weight: 600; color: var(--violet); margin-top: 6px; }
+        .export-tag {
+            position: absolute; top: 14px; right: 14px; font-size: 10.5px; font-weight: 600;
+            background: var(--violet-glow); color: var(--violet); padding: 3px 8px; border-radius: 99px;
+        }
+        @media(max-width:900px) { .export-tiles { grid-template-columns: 1fr; } }
+    </style>
 </head>
+
 <body>
 
-<div id="login-screen">
-  <div class="login-card">
-    <div class="brand-mark"><div class="dot">A</div><span>Alpdy Agency</span></div>
-    <h1 id="login-title">Se connecter</h1>
-    <p class="sub">Espace de gestion de l'équipe de clippers.</p>
+    <div id="login-screen">
+        <div class="login-card">
+            <div class="brand-mark">
+                <div class="dot">A</div><span>Alpdy Agency</span></div>
+            <h1 id="login-title">Se connecter</h1>
+            <p class="sub">Espace de gestion de l'équipe de clippers.</p>
 
-    <div class="role-toggle">
-      <button id="tab-clipper" class="active" onclick="setLoginTab('clipper')">Clipper</button>
-      <button id="tab-admin" onclick="setLoginTab('admin')">Administrateur</button>
-    </div>
+            <div class="role-toggle">
+                <button id="tab-clipper" class="active" onclick="setLoginTab('clipper')">Clipper</button>
+                <button id="tab-admin" onclick="setLoginTab('admin')">Administrateur</button>
+            </div>
 
-    <div id="clipper-login-block">
-      <div class="field">
-        <label class="field-label">Mon pseudo</label>
-        <input type="text" id="clipper-pseudo-input" placeholder="Ton pseudo">
-      </div>
-      <div id="recent-clippers-chips"></div>
-      <div class="field">
-        <label class="field-label">Mot de passe</label>
-        <input type="text" id="clipper-password" placeholder="Ton mot de passe">
-      </div>
-      <button class="btn btn-primary" onclick="loginAsClipper()">Entrer dans l'espace</button>
-      <div class="hint">Nouveau ici ? <span style="color:var(--violet); cursor:pointer;" onclick="toggleNewClipper()">Créer un profil clipper</span></div>
-      <div id="new-clipper-block" style="display:none; margin-top:16px;">
-        <div class="field"><label class="field-label">Clé d'invitation</label><input type="text" id="new-clipper-invite" placeholder="Ex : A7K2" maxlength="4" style="text-transform:uppercase;"></div>
-        <div class="field"><label class="field-label">Pseudo</label><input type="text" id="new-clipper-pseudo" placeholder="Ex : ClipMaster"></div>
-        <div class="field"><label class="field-label">Email (optionnel)</label><input type="text" id="new-clipper-email" placeholder="toi@exemple.com"></div>
-        <div class="field"><label class="field-label">Mot de passe</label><input type="text" id="new-clipper-password" placeholder="Choisis un mot de passe"></div>
-        <button class="btn btn-ghost" style="width:100%;" onclick="createClipper()">Créer le profil</button>
-      </div>
-    </div>
+            <div id="clipper-login-block">
+                <div class="field">
+                    <label class="field-label">Mon pseudo</label>
+                    <input type="text" id="clipper-pseudo-input" placeholder="Ton pseudo">
+                </div>
+                <div id="recent-clippers-chips"></div>
+                <div class="field">
+                    <label class="field-label">Mot de passe</label>
+                    <input type="text" id="clipper-password" placeholder="Ton mot de passe">
+                </div>
+                <button class="btn btn-primary" onclick="loginAsClipper()">Entrer dans l'espace</button>
+                <div class="hint">Nouveau ici ? <span style="color:var(--violet); cursor:pointer;" onclick="toggleNewClipper()">Créer un profil clipper</span></div>
+                <div id="new-clipper-block" style="display:none; margin-top:16px;">
+                    <div class="field"><label class="field-label">Clé d'invitation</label><input type="text" id="new-clipper-invite" placeholder="Ex : A7K2" maxlength="4" style="text-transform:uppercase;"></div>
+                    <div class="field"><label class="field-label">Pseudo</label><input type="text" id="new-clipper-pseudo" placeholder="Ex : ClipMaster"></div>
+                    <div class="field"><label class="field-label">Email (optionnel)</label><input type="text" id="new-clipper-email" placeholder="toi@exemple.com"></div>
+                    <div class="field"><label class="field-label">Mot de passe</label><input type="text" id="new-clipper-password" placeholder="Choisis un mot de passe"></div>
+                    <button class="btn btn-ghost" style="width:100%;" onclick="createClipper()">Créer le profil</button>
+                </div>
+            </div>
 
-    <div id="admin-login-block" style="display:none;">
-      <div class="field"><label class="field-label">Code administrateur</label><input type="text" id="admin-code" placeholder="Code d'accès manager"></div>
-      <button class="btn btn-primary" onclick="loginAsAdmin()">Entrer dans le dashboard</button>
-      <div class="hint">Accès réservé au manager de l'agence.</div>
-    </div>
-  </div>
-</div>
-
-<div id="app">
-<div id="shell">
-  <div id="sidebar">
-    <div class="brand-mark"><div class="dot">A</div><span>Alpdy Agency</span></div>
-
-    <div id="nav-admin" style="display:none;">
-      <div class="nav-item active" data-view="dashboard" onclick="showView('dashboard')"><span class="ic">◆</span>Dashboard</div>
-      <div class="nav-item" data-view="validation" onclick="showView('validation')"><span class="ic">✓</span>Validation</div>
-      <div class="nav-item" data-view="clippers" onclick="showView('clippers')"><span class="ic">◎</span>Clippers</div>
-      <div class="nav-item" data-view="invites" onclick="showView('invites')"><span class="ic">🔑</span>Clés d'invitation</div>
-      <div class="nav-item" data-view="classement" onclick="showView('classement')"><span class="ic">🏆</span>Classement</div>
-      <div class="nav-item" data-view="paiements" onclick="showView('paiements')"><span class="ic">◈</span>Paiements</div>
-      <div class="nav-item" data-view="parametres" onclick="showView('parametres')"><span class="ic">⚙</span>Paramètres</div>
-    </div>
-
-    <div id="nav-clipper" style="display:none;">
-      <div class="nav-item active" data-view="c-dashboard" onclick="showView('c-dashboard')"><span class="ic">◆</span>Dashboard</div>
-      <div class="nav-item" data-view="c-submit" onclick="showView('c-submit')"><span class="ic">+</span>Soumettre</div>
-      <div class="nav-item" data-view="c-videos" onclick="showView('c-videos')"><span class="ic">▤</span>Mes vidéos</div>
-      <div class="nav-item" data-view="c-team" onclick="showView('c-team')"><span class="ic">◎</span>Équipe</div>
-      <div class="nav-item" data-view="classement" onclick="showView('classement')"><span class="ic">🏆</span>Classement</div>
-      <div class="nav-item" data-view="c-profil" onclick="showView('c-profil')"><span class="ic">◎</span>Profil</div>
-    </div>
-
-    <div id="sidebar-footer">
-      <div class="user-chip">
-        <div class="avatar" id="user-avatar">?</div>
-        <div><div class="name" id="user-name">-</div><div class="role" id="user-role">-</div></div>
-      </div>
-      <div class="sync-status" id="sync-status"><span class="sync-dot"></span>Synchronisé à l'instant</div>
-      <div class="logout-link" onclick="logout()">↩ Changer de compte</div>
-    </div>
-  </div>
-
-  <div id="main">
-
-    <!-- ADMIN DASHBOARD -->
-    <div class="view" id="view-dashboard">
-      <div class="page-head"><div><h2>Dashboard</h2><p>Vue d'ensemble de la performance de l'équipe.</p></div></div>
-      <div class="grid grid-4" id="admin-stats"></div>
-      <div class="divider"></div>
-      <div class="grid grid-2">
-        <div class="card">
-          <div class="card-title">Dernières vidéos soumises</div>
-          <table><thead><tr><th>Clipper</th><th>Titre</th><th>Plateforme</th><th>Vues</th><th>Statut</th></tr></thead><tbody id="recent-videos-body"></tbody></table>
+            <div id="admin-login-block" style="display:none;">
+                <div class="field"><label class="field-label">Code administrateur</label><input type="text" id="admin-code" placeholder="Code d'accès manager"></div>
+                <button class="btn btn-primary" onclick="loginAsAdmin()">Entrer dans le dashboard</button>
+                <div class="hint">Accès réservé au manager de l'agence.</div>
+            </div>
         </div>
-        <div>
-          <div class="card" style="margin-bottom:14px;">
-            <div class="card-title">Objectif global</div>
-            <div id="admin-objective"></div>
-          </div>
-          <div class="card">
-            <div class="card-title">Meilleurs clippers</div>
-            <div id="top-clippers-mini"></div>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <!-- ADMIN VALIDATION -->
-    <div class="view" id="view-validation">
-      <div class="page-head"><div><h2>Validation des performances</h2><p>Vérifie les preuves avant de valider les vues.</p></div></div>
-      <div class="filter-bar">
-        <input type="text" id="validation-search" placeholder="Rechercher un clipper ou un titre..." oninput="renderValidation()">
-        <select id="validation-filter-platform" onchange="renderValidation()">
+    <div id="app">
+        <div id="shell">
+            <div id="sidebar">
+                <div class="brand-mark">
+                    <div class="dot">A</div><span>Alpdy Agency</span></div>
+
+                <div id="nav-admin" style="display:none;">
+                    <div class="nav-item active" data-view="dashboard" onclick="showView('dashboard')"><span class="ic">◆</span>Dashboard</div>
+                    <div class="nav-item" data-view="validation" onclick="showView('validation')"><span class="ic">✓</span>Validation</div>
+                    <div class="nav-item" data-view="clippers" onclick="showView('clippers')"><span class="ic">◎</span>Clippers</div>
+                    <div class="nav-item" data-view="invites" onclick="showView('invites')"><span class="ic">🔑</span>Clés d'invitation</div>
+                    <div class="nav-item" data-view="classement" onclick="showView('classement')"><span class="ic">🏆</span>Classement</div>
+                    <div class="nav-item" data-view="paiements" onclick="showView('paiements')"><span class="ic">◈</span>Paiements</div>
+                    <div class="nav-item" data-view="parametres" onclick="showView('parametres')"><span class="ic">⚙</span>Paramètres</div>
+                </div>
+
+                <div id="nav-clipper" style="display:none;">
+                    <div class="nav-item active" data-view="c-dashboard" onclick="showView('c-dashboard')"><span class="ic">◆</span>Dashboard</div>
+                    <div class="nav-item" data-view="c-submit" onclick="showView('c-submit')"><span class="ic">+</span>Soumettre</div>
+                    <div class="nav-item" data-view="c-videos" onclick="showView('c-videos')"><span class="ic">▤</span>Mes vidéos</div>
+                    <div class="nav-item" data-view="c-team" onclick="showView('c-team')"><span class="ic">◎</span>Équipe</div>
+                    <div class="nav-item" data-view="classement" onclick="showView('classement')"><span class="ic">🏆</span>Classement</div>
+                    <div class="nav-item" data-view="c-profil" onclick="showView('c-profil')"><span class="ic">◎</span>Profil</div>
+                </div>
+
+                <div id="sidebar-footer">
+                    <div class="user-chip">
+                        <div class="avatar" id="user-avatar">?</div>
+                        <div>
+                            <div class="name" id="user-name">-</div>
+                            <div class="role" id="user-role">-</div>
+                        </div>
+                    </div>
+                    <div class="sync-status" id="sync-status"><span class="sync-dot"></span>Synchronisé à l'instant</div>
+                    <div class="logout-link" onclick="logout()">↩ Changer de compte</div>
+                </div>
+            </div>
+
+            <div id="main">
+
+                <!-- ADMIN DASHBOARD -->
+                <div class="view" id="view-dashboard">
+                    <div class="page-head">
+                        <div>
+                            <h2>Dashboard</h2>
+                            <p>Vue d'ensemble de la performance de l'équipe.</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-4" id="admin-stats"></div>
+                    <div class="divider"></div>
+                    <div class="grid grid-2">
+                        <div class="card">
+                            <div class="card-title">Dernières vidéos soumises</div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Clipper</th>
+                                        <th>Titre</th>
+                                        <th>Plateforme</th>
+                                        <th>Vues</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-videos-body"></tbody>
+                            </table>
+                        </div>
+                        <div>
+                            <div class="card" style="margin-bottom:14px;">
+                                <div class="card-title">Objectif global</div>
+                                <div id="admin-objective"></div>
+                            </div>
+                            <div class="card">
+                                <div class="card-title">Meilleurs clippers</div>
+                                <div id="top-clippers-mini"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ADMIN VALIDATION -->
+                <div class="view" id="view-validation">
+                    <div class="page-head">
+                        <div>
+                            <h2>Validation des performances</h2>
+                            <p>Vérifie les preuves avant de valider les vues.</p>
+                        </div>
+                    </div>
+                    <div class="filter-bar">
+                        <input type="text" id="validation-search" placeholder="Rechercher un clipper ou un titre..." oninput="renderValidation()">
+                        <select id="validation-filter-platform" onchange="renderValidation()">
           <option value="all">Toutes plateformes</option>
           <option value="TikTok">TikTok</option>
           <option value="YouTube">YouTube</option>
           <option value="Autre">Autre</option>
         </select>
-        <select id="validation-filter-status" onchange="renderValidation()">
+                        <select id="validation-filter-status" onchange="renderValidation()">
           <option value="all">Tous statuts</option>
           <option value="pending">En attente</option>
           <option value="validated">Validé</option>
           <option value="rejected">Rejeté</option>
         </select>
-      </div>
-      <div class="card">
-        <table><thead><tr><th>Clipper</th><th>Titre</th><th>Plateforme</th><th>Vues déclarées</th><th>Statut</th><th></th></tr></thead><tbody id="validation-body"></tbody></table>
-      </div>
-    </div>
+                    </div>
+                    <div class="card">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Clipper</th>
+                                    <th>Titre</th>
+                                    <th>Plateforme</th>
+                                    <th>Vues déclarées</th>
+                                    <th>Statut</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="validation-body"></tbody>
+                        </table>
+                    </div>
+                </div>
 
-    <!-- ADMIN CLIPPERS -->
-    <div class="view" id="view-clippers">
-      <div class="page-head">
-        <div><h2>Clippers</h2><p>Tous les membres de l'équipe.</p></div>
-        <button class="btn btn-primary" style="width:auto;" onclick="openAddClipper()">+ Ajouter un clipper</button>
-      </div>
-      <div class="filter-bar">
-        <input type="text" id="clippers-search" placeholder="Rechercher un pseudo..." oninput="renderClippersDirectory('clippers-body', true)">
-      </div>
-      <div class="card">
-        <table><thead><tr><th>Pseudo</th><th>Inscrit le</th><th></th></tr></thead><tbody id="clippers-body"></tbody></table>
-      </div>
-    </div>
+                <!-- ADMIN CLIPPERS -->
+                <div class="view" id="view-clippers">
+                    <div class="page-head">
+                        <div>
+                            <h2>Clippers</h2>
+                            <p>Tous les membres de l'équipe.</p>
+                        </div>
+                        <button class="btn btn-primary" style="width:auto;" onclick="openAddClipper()">+ Ajouter un clipper</button>
+                    </div>
+                    <div class="filter-bar">
+                        <input type="text" id="clippers-search" placeholder="Rechercher un pseudo..." oninput="renderClippersDirectory('clippers-body', true)">
+                    </div>
+                    <div class="card">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Pseudo</th>
+                                    <th>Inscrit le</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="clippers-body"></tbody>
+                        </table>
+                    </div>
+                </div>
 
-    <!-- ADMIN INVITE KEYS -->
-    <div class="view" id="view-invites">
-      <div class="page-head">
-        <div><h2>Clés d'invitation</h2><p>Génère des clés à usage unique pour autoriser la création de nouveaux comptes clippers.</p></div>
-        <button class="btn btn-primary" style="width:auto;" onclick="generateInviteKey()">+ Générer une clé</button>
-      </div>
-      <div class="card">
-        <table><thead><tr><th>Code</th><th>Statut</th><th>Utilisée par</th><th>Date</th><th></th></tr></thead><tbody id="invites-body"></tbody></table>
-      </div>
-    </div>
+                <!-- ADMIN INVITE KEYS -->
+                <div class="view" id="view-invites">
+                    <div class="page-head">
+                        <div>
+                            <h2>Clés d'invitation</h2>
+                            <p>Génère des clés à usage unique pour autoriser la création de nouveaux comptes clippers.</p>
+                        </div>
+                        <button class="btn btn-primary" style="width:auto;" onclick="generateInviteKey()">+ Générer une clé</button>
+                    </div>
+                    <div class="card">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Statut</th>
+                                    <th>Utilisée par</th>
+                                    <th>Date</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="invites-body"></tbody>
+                        </table>
+                    </div>
+                </div>
 
-    <!-- CLASSEMENT (shared) -->
-    <div class="view" id="view-classement">
-      <div class="page-head"><div><h2>🏆 Classement</h2><p id="classement-sub">Compétition transparente entre tous les clippers de l'agence.</p></div></div>
-      <div class="period-dropdown-wrap" id="period-dropdown-wrap">
-        <button class="period-dropdown-btn" id="period-dropdown-btn" onclick="togglePeriodDropdown()">
+                <!-- CLASSEMENT (shared) -->
+                <div class="view" id="view-classement">
+                    <div class="page-head">
+                        <div>
+                            <h2>🏆 Classement</h2>
+                            <p id="classement-sub">Compétition transparente entre tous les clippers de l'agence.</p>
+                        </div>
+                    </div>
+                    <div class="period-dropdown-wrap" id="period-dropdown-wrap">
+                        <button class="period-dropdown-btn" id="period-dropdown-btn" onclick="togglePeriodDropdown()">
           <span>📅</span><span id="period-dropdown-label">Total (cumul)</span><span class="chev">⌄</span>
         </button>
-        <div class="period-dropdown-menu" id="period-dropdown-menu"></div>
-      </div>
-      <div class="podium-wrap" id="podium"></div>
-      <div class="card">
-        <table><thead><tr><th>Pos</th><th>Clipper</th><th>Vues validées</th><th>Vidéos</th><th>Gains</th><th>Paiement</th></tr></thead><tbody id="ranking-body"></tbody></table>
-      </div>
-      <div class="card" style="margin-top:14px;">
-        <div class="card-title">Statistiques globales du programme</div>
-        <div class="grid grid-2" style="grid-template-columns:1fr 1fr;">
-          <div><div class="stat-label" style="font-size:12px; color:var(--text-mid); font-weight:600; text-transform:uppercase;">Total des vues</div><div class="stat-value mono" id="global-views" style="font-size:22px; font-weight:600;">-</div></div>
-          <div><div class="stat-label" style="font-size:12px; color:var(--text-mid); font-weight:600; text-transform:uppercase;">Total des gains</div><div class="stat-value mono" id="global-gains" style="font-size:22px; font-weight:600;">-</div></div>
-        </div>
-        <p class="global-note">Les chiffres affichés représentent les performances globales de l'ensemble des clippers du programme et ne correspondent pas aux performances personnelles d'un seul utilisateur. Ce bloc reste toujours en cumul global, quelle que soit la période sélectionnée ci-dessus.</p>
-      </div>
-    </div>
+                        <div class="period-dropdown-menu" id="period-dropdown-menu"></div>
+                    </div>
+                    <div class="podium-wrap" id="podium"></div>
+                    <div class="card">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Pos</th>
+                                    <th>Clipper</th>
+                                    <th>Vues validées</th>
+                                    <th>Vidéos</th>
+                                    <th>Gains</th>
+                                    <th>Paiement</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ranking-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="card" style="margin-top:14px;">
+                        <div class="card-title">Statistiques globales du programme</div>
+                        <div class="grid grid-2" style="grid-template-columns:1fr 1fr;">
+                            <div>
+                                <div class="stat-label" style="font-size:12px; color:var(--text-mid); font-weight:600; text-transform:uppercase;">Total des vues</div>
+                                <div class="stat-value mono" id="global-views" style="font-size:22px; font-weight:600;">-</div>
+                            </div>
+                            <div>
+                                <div class="stat-label" style="font-size:12px; color:var(--text-mid); font-weight:600; text-transform:uppercase;">Total des gains</div>
+                                <div class="stat-value mono" id="global-gains" style="font-size:22px; font-weight:600;">-</div>
+                            </div>
+                        </div>
+                        <p class="global-note">Les chiffres affichés représentent les performances globales de l'ensemble des clippers du programme et ne correspondent pas aux performances personnelles d'un seul utilisateur. Ce bloc reste toujours en cumul global, quelle que
+                            soit la période sélectionnée ci-dessus.</p>
+                    </div>
+                </div>
 
-    <!-- ADMIN PAIEMENTS -->
-    <div class="view" id="view-paiements">
-      <div class="page-head"><div><h2>Paiements</h2><p>Paiement mensuel unique par clipper, calculé sur les gains du mois en cours.</p></div></div>
-      <div class="filter-bar">
-        <input type="text" id="payments-search" placeholder="Rechercher un clipper..." oninput="renderPayments()">
-        <select id="payments-filter-status" onchange="renderPayments()">
+                <!-- ADMIN PAIEMENTS -->
+                <div class="view" id="view-paiements">
+                    <div class="page-head">
+                        <div>
+                            <h2>Paiements</h2>
+                            <p>Paiement mensuel unique par clipper, calculé sur les gains du mois en cours.</p>
+                        </div>
+                    </div>
+                    <div class="filter-bar">
+                        <input type="text" id="payments-search" placeholder="Rechercher un clipper..." oninput="renderPayments()">
+                        <select id="payments-filter-status" onchange="renderPayments()">
           <option value="all">Tous statuts</option>
           <option value="pending">En cours</option>
           <option value="paid">Certifié</option>
         </select>
-      </div>
-      <div class="card">
-        <table><thead><tr><th>Clipper</th><th>Gains du mois en cours</th><th>Statut</th><th></th></tr></thead><tbody id="payments-body"></tbody></table>
-      </div>
+                    </div>
+                    <div class="card">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Clipper</th>
+                                    <th>Gains du mois en cours</th>
+                                    <th>Statut</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="payments-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ADMIN PARAMETRES -->
+                <div class="view" id="view-parametres">
+                    <div class="page-head">
+                        <div>
+                            <h2>Paramètres</h2>
+                            <p>Configuration du programme.</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-2" style="grid-template-columns:minmax(0,520px);">
+                        <div class="card">
+                            <div class="card-title">Rémunération</div>
+                            <div class="field"><label class="field-label">Prix pour 1000 vues (FCFA)</label><input type="number" id="setting-price"></div>
+                            <div class="field"><label class="field-label">Objectif de vues global</label><input type="number" id="setting-objective"></div>
+                            <div class="field"><label class="field-label">Coût du programme (FCFA)</label><input type="number" id="setting-adjustment"></div>
+                            <div style="font-size:11.5px; color:var(--text-low); margin:-10px 0 16px;">Ce montant est affiché tel quel dans la carte "Coût du programme" du Dashboard — il n'est plus calculé automatiquement à partir des gains et paiements.</div>
+                            <button class="btn btn-primary" onclick="saveSettings()">Enregistrer</button>
+                        </div>
+                    </div>
+                    <div class="card export-card" style="margin-top:14px;">
+                        <div class="card-title">Exporter les données</div>
+                        <p class="export-sub">Choisis la période, puis le format. Les fichiers contiennent toujours les données les plus récentes.</p>
+                        <div class="field" style="max-width:300px;">
+                            <label class="field-label">Période</label>
+                            <select id="export-period" class="export-select" onchange="updateExportSummary()"></select>
+                        </div>
+                        <div class="export-summary" id="export-summary"></div>
+                        <div class="export-tiles">
+                            <button type="button" class="export-tile xl" id="export-btn-xlsx" onclick="exportExcel()">
+                                <span class="export-tag">Recommandé</span>
+                                <div class="export-ic">📊</div>
+                                <h4>Excel (.xlsx)</h4>
+                                <p>Classeur complet et mis en forme : résumé &amp; classement, liste des vidéos, paiements.</p>
+                                <span class="go">Télécharger →</span>
+                            </button>
+                            <button type="button" class="export-tile pdf" id="export-btn-pdf" onclick="exportPDF()">
+                                <div class="export-ic">📄</div>
+                                <h4>Rapport PDF</h4>
+                                <p>Rapport de performance prêt à imprimer ou à enregistrer en PDF, aux couleurs de l'agence.</p>
+                                <span class="go">Générer le rapport →</span>
+                            </button>
+                            <button type="button" class="export-tile csv" id="export-btn-csv" onclick="exportCSV()">
+                                <div class="export-ic">🧾</div>
+                                <h4>CSV simple</h4>
+                                <p>Récapitulatif par clipper, léger et compatible avec Excel, Google Sheets et autres outils.</p>
+                                <span class="go">Télécharger →</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CLIPPER DASHBOARD -->
+                <div class="view" id="view-c-dashboard">
+                    <div class="page-head">
+                        <div>
+                            <h2 id="c-dash-title">Mon espace</h2>
+                            <p>Ton résumé de performance.</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-4" id="clipper-stats"></div>
+                    <div class="divider"></div>
+                    <div class="grid grid-2">
+                        <div class="card">
+                            <div class="card-title">Mes dernières vidéos</div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Titre</th>
+                                        <th>Plateforme</th>
+                                        <th>Vues</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="c-recent-videos"></tbody>
+                            </table>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">Objectif global de l'équipe</div>
+                            <div id="clipper-objective"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CLIPPER SUBMIT -->
+                <div class="view" id="view-c-submit">
+                    <div class="page-head">
+                        <div>
+                            <h2>Soumettre une vidéo</h2>
+                            <p>Déclare tes performances pour validation.</p>
+                        </div>
+                    </div>
+                    <div class="card" style="max-width:560px;">
+                        <div class="field"><label class="field-label">Titre de la vidéo</label><input type="text" id="sub-title" placeholder="Ex : Clip highlight #12"></div>
+                        <div class="field"><label class="field-label">Plateforme</label>
+                            <select id="sub-platform"><option>TikTok</option><option>YouTube</option><option>Autre</option></select>
+                        </div>
+                        <div class="field"><label class="field-label">URL de la vidéo</label><input type="url" id="sub-url" placeholder="https://..."></div>
+                        <div class="field"><label class="field-label">Nombre de vues obtenu</label><input type="number" id="sub-views" placeholder="0"></div>
+                        <div class="field"><label class="field-label">Preuve (capture d'écran)</label>
+                            <input type="file" accept="image/*" id="sub-proof-file" onchange="handleProofFileChange(event)">
+                            <div id="sub-proof-preview" style="margin-top:8px;"></div>
+                            <div style="font-size:11.5px; color:var(--text-low); margin-top:6px;">L'image est compressée automatiquement. Limite ~3-4 Mo par preuve.</div>
+                        </div>
+                        <div class="field"><label class="field-label">Note (optionnel)</label><input type="text" id="sub-proof-note" placeholder="Précision sur la preuve"></div>
+                        <button class="btn btn-primary" onclick="submitVideo()">Envoyer pour validation</button>
+                    </div>
+                </div>
+
+                <!-- CLIPPER VIDEOS -->
+                <div class="view" id="view-c-videos">
+                    <div class="page-head">
+                        <div>
+                            <h2>Mes vidéos</h2>
+                            <p>Historique de toutes tes soumissions.</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Titre</th>
+                                    <th>Plateforme</th>
+                                    <th>Vues</th>
+                                    <th>Statut</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="c-videos-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- CLIPPER PROFIL -->
+                <div class="view" id="view-c-profil">
+                    <div class="page-head">
+                        <div>
+                            <h2>Mon profil</h2>
+                            <p></p>
+                        </div>
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="card">
+                            <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+                                <div class="avatar" style="width:52px; height:52px; font-size:18px;" id="profil-avatar">?</div>
+                                <div>
+                                    <div style="font-weight:600; font-size:17px;" id="profil-pseudo">-</div>
+                                    <div style="font-size:12.5px; color:var(--text-mid);" id="profil-joined">-</div>
+                                </div>
+                            </div>
+                            <div class="kv-row"><span class="k">Classement actuel</span><span class="v" id="profil-rank">-</span></div>
+                            <div class="kv-row"><span class="k">Statut paiement</span><span class="v" id="profil-paid">-</span></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">Historique des paiements</div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Montant</th>
+                                        <th>Statut</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="profil-payments-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card" style="max-width:420px; margin-top:14px;">
+                        <div class="card-title">Mes identifiants</div>
+                        <div class="field"><label class="field-label">Email</label><input type="text" id="profil-email-input" placeholder="toi@exemple.com"></div>
+                        <div class="field"><label class="field-label">Nouveau mot de passe (laisser vide pour ne pas changer)</label><input type="text" id="profil-password-input" placeholder="Nouveau mot de passe"></div>
+                        <button class="btn btn-primary" onclick="updateOwnAccount()">Enregistrer</button>
+                    </div>
+                    <div class="card" style="max-width:420px; margin-top:14px;">
+                        <div class="card-title">Mes informations de paiement (Mobile Money / Orange Money)</div>
+                        <div style="font-size:11.5px; color:var(--text-low); margin:-6px 0 14px;">Visibles uniquement par l'administrateur, pour faciliter tes paiements.</div>
+                        <div class="field"><label class="field-label">Numéro Mobile Money / Orange Money</label><input type="text" id="profil-mm-number-input" placeholder="Ex : 6 XX XX XX XX"></div>
+                        <div class="field"><label class="field-label">Nom du titulaire du compte</label><input type="text" id="profil-mm-name-input" placeholder="Nom complet sur le compte"></div>
+                        <button class="btn btn-primary" onclick="updatePaymentInfo()">Enregistrer</button>
+                    </div>
+                </div>
+
+                <!-- CLIPPER TEAM -->
+                <div class="view" id="view-c-team">
+                    <div class="page-head">
+                        <div>
+                            <h2>Équipe</h2>
+                            <p>Tous les clippers inscrits à l'agence et leurs performances.</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Pseudo</th>
+                                    <th>Inscrit le</th>
+                                    <th>Paiement</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="c-team-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
 
-    <!-- ADMIN PARAMETRES -->
-    <div class="view" id="view-parametres">
-      <div class="page-head"><div><h2>Paramètres</h2><p>Configuration du programme.</p></div></div>
-      <div class="grid grid-2">
-        <div class="card">
-          <div class="card-title">Rémunération</div>
-          <div class="field"><label class="field-label">Prix pour 1000 vues (FCFA)</label><input type="number" id="setting-price"></div>
-          <div class="field"><label class="field-label">Objectif de vues global</label><input type="number" id="setting-objective"></div>
-          <div class="field"><label class="field-label">Coût du programme (FCFA)</label><input type="number" id="setting-adjustment"></div>
-          <div style="font-size:11.5px; color:var(--text-low); margin:-10px 0 16px;">Ce montant est affiché tel quel dans la carte "Coût du programme" du Dashboard — il n'est plus calculé automatiquement à partir des gains et paiements.</div>
-          <button class="btn btn-primary" onclick="saveSettings()">Enregistrer</button>
-        </div>
-        <div class="card">
-          <div class="card-title">Export</div>
-          <p style="color:var(--text-mid); font-size:13.5px; margin-bottom:14px;">Génère un export des données de l'agence en CSV (ouvrable dans Excel).</p>
-          <button class="btn btn-ghost" style="width:100%; margin-bottom:10px;" onclick="exportCSV()">Exporter en CSV (Excel)</button>
-          <button class="btn btn-ghost" style="width:100%;" onclick="exportPDF()">Exporter le rapport (impression / PDF)</button>
-        </div>
-      </div>
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal" id="modal-content"></div>
     </div>
+    <div class="toast" id="toast"></div>
 
-    <!-- CLIPPER DASHBOARD -->
-    <div class="view" id="view-c-dashboard">
-      <div class="page-head"><div><h2 id="c-dash-title">Mon espace</h2><p>Ton résumé de performance.</p></div></div>
-      <div class="grid grid-4" id="clipper-stats"></div>
-      <div class="divider"></div>
-      <div class="grid grid-2">
-        <div class="card">
-          <div class="card-title">Mes dernières vidéos</div>
-          <table><thead><tr><th>Titre</th><th>Plateforme</th><th>Vues</th><th>Statut</th></tr></thead><tbody id="c-recent-videos"></tbody></table>
-        </div>
-        <div class="card">
-          <div class="card-title">Objectif global de l'équipe</div>
-          <div id="clipper-objective"></div>
-        </div>
-      </div>
-    </div>
+    <script>
+        let DATA = {
+            clippers: [],
+            videos: [],
+            payments: [],
+            inviteKeys: [],
+            settings: {
+                pricePer1000: 100,
+                objectiveViews: 10000000,
+                balanceAdjustment: 0
+            }
+        };
+        let SESSION = null;
+        let currentProofDataUrl = null;
+        const MAX_PROOF_CHARS = 3.5 * 1024 * 1024;
 
-    <!-- CLIPPER SUBMIT -->
-    <div class="view" id="view-c-submit">
-      <div class="page-head"><div><h2>Soumettre une vidéo</h2><p>Déclare tes performances pour validation.</p></div></div>
-      <div class="card" style="max-width:560px;">
-        <div class="field"><label class="field-label">Titre de la vidéo</label><input type="text" id="sub-title" placeholder="Ex : Clip highlight #12"></div>
-        <div class="field"><label class="field-label">Plateforme</label>
-          <select id="sub-platform"><option>TikTok</option><option>YouTube</option><option>Autre</option></select>
-        </div>
-        <div class="field"><label class="field-label">URL de la vidéo</label><input type="url" id="sub-url" placeholder="https://..."></div>
-        <div class="field"><label class="field-label">Nombre de vues obtenu</label><input type="number" id="sub-views" placeholder="0"></div>
-        <div class="field"><label class="field-label">Preuve (capture d'écran)</label>
-          <input type="file" accept="image/*" id="sub-proof-file" onchange="handleProofFileChange(event)">
-          <div id="sub-proof-preview" style="margin-top:8px;"></div>
-          <div style="font-size:11.5px; color:var(--text-low); margin-top:6px;">L'image est compressée automatiquement. Limite ~3-4 Mo par preuve.</div>
-        </div>
-        <div class="field"><label class="field-label">Note (optionnel)</label><input type="text" id="sub-proof-note" placeholder="Précision sur la preuve"></div>
-        <button class="btn btn-primary" onclick="submitVideo()">Envoyer pour validation</button>
-      </div>
-    </div>
-
-    <!-- CLIPPER VIDEOS -->
-    <div class="view" id="view-c-videos">
-      <div class="page-head"><div><h2>Mes vidéos</h2><p>Historique de toutes tes soumissions.</p></div></div>
-      <div class="card">
-        <table><thead><tr><th>Titre</th><th>Plateforme</th><th>Vues</th><th>Statut</th><th></th></tr></thead><tbody id="c-videos-body"></tbody></table>
-      </div>
-    </div>
-
-    <!-- CLIPPER PROFIL -->
-    <div class="view" id="view-c-profil">
-      <div class="page-head"><div><h2>Mon profil</h2><p></p></div></div>
-      <div class="grid grid-2">
-        <div class="card">
-          <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
-            <div class="avatar" style="width:52px; height:52px; font-size:18px;" id="profil-avatar">?</div>
-            <div><div style="font-weight:600; font-size:17px;" id="profil-pseudo">-</div><div style="font-size:12.5px; color:var(--text-mid);" id="profil-joined">-</div></div>
-          </div>
-          <div class="kv-row"><span class="k">Classement actuel</span><span class="v" id="profil-rank">-</span></div>
-          <div class="kv-row"><span class="k">Statut paiement</span><span class="v" id="profil-paid">-</span></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Historique des paiements</div>
-          <table><thead><tr><th>Date</th><th>Montant</th><th>Statut</th><th></th></tr></thead><tbody id="profil-payments-body"></tbody></table>
-        </div>
-      </div>
-      <div class="card" style="max-width:420px; margin-top:14px;">
-        <div class="card-title">Mes identifiants</div>
-        <div class="field"><label class="field-label">Email</label><input type="text" id="profil-email-input" placeholder="toi@exemple.com"></div>
-        <div class="field"><label class="field-label">Nouveau mot de passe (laisser vide pour ne pas changer)</label><input type="text" id="profil-password-input" placeholder="Nouveau mot de passe"></div>
-        <button class="btn btn-primary" onclick="updateOwnAccount()">Enregistrer</button>
-      </div>
-      <div class="card" style="max-width:420px; margin-top:14px;">
-        <div class="card-title">Mes informations de paiement (Mobile Money / Orange Money)</div>
-        <div style="font-size:11.5px; color:var(--text-low); margin:-6px 0 14px;">Visibles uniquement par l'administrateur, pour faciliter tes paiements.</div>
-        <div class="field"><label class="field-label">Numéro Mobile Money / Orange Money</label><input type="text" id="profil-mm-number-input" placeholder="Ex : 6 XX XX XX XX"></div>
-        <div class="field"><label class="field-label">Nom du titulaire du compte</label><input type="text" id="profil-mm-name-input" placeholder="Nom complet sur le compte"></div>
-        <button class="btn btn-primary" onclick="updatePaymentInfo()">Enregistrer</button>
-      </div>
-    </div>
-
-    <!-- CLIPPER TEAM -->
-    <div class="view" id="view-c-team">
-      <div class="page-head"><div><h2>Équipe</h2><p>Tous les clippers inscrits à l'agence et leurs performances.</p></div></div>
-      <div class="card">
-        <table><thead><tr><th>Pseudo</th><th>Inscrit le</th><th>Paiement</th><th></th></tr></thead><tbody id="c-team-body"></tbody></table>
-      </div>
-    </div>
-
-  </div>
-</div>
-</div>
-
-<div class="modal-overlay" id="modal-overlay">
-  <div class="modal" id="modal-content"></div>
-</div>
-<div class="toast" id="toast"></div>
-
-<script>
-let DATA = { clippers: [], videos: [], payments: [], inviteKeys: [], settings: { pricePer1000: 100, objectiveViews: 10000000, balanceAdjustment: 0 } };
-let SESSION = null;
-let currentProofDataUrl = null;
-const MAX_PROOF_CHARS = 3.5 * 1024 * 1024;
-
-function compressImage(file){
-  return new Promise((resolve, reject)=>{
-    if(!file.type || !file.type.startsWith('image/')){ reject(new Error('Merci de choisir un fichier image.')); return; }
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error('Lecture du fichier impossible.'));
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = () => reject(new Error('Fichier image invalide.'));
-      img.onload = () => {
-        const attempts = [ {maxW:1600,q:0.82}, {maxW:1600,q:0.6}, {maxW:1200,q:0.55}, {maxW:1000,q:0.5}, {maxW:800,q:0.45}, {maxW:600,q:0.4} ];
-        let best = null;
-        for(const a of attempts){
-          const scale = Math.min(1, a.maxW / img.width);
-          const w = Math.max(1, Math.round(img.width * scale));
-          const h = Math.max(1, Math.round(img.height * scale));
-          const canvas = document.createElement('canvas');
-          canvas.width = w; canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, w, h);
-          const dataUrl = canvas.toDataURL('image/jpeg', a.q);
-          best = dataUrl;
-          if(dataUrl.length <= MAX_PROOF_CHARS){ resolve(dataUrl); return; }
+        function compressImage(file) {
+            return new Promise((resolve, reject) => {
+                if (!file.type || !file.type.startsWith('image/')) {
+                    reject(new Error('Merci de choisir un fichier image.'));
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onerror = () => reject(new Error('Lecture du fichier impossible.'));
+                reader.onload = () => {
+                    const img = new Image();
+                    img.onerror = () => reject(new Error('Fichier image invalide.'));
+                    img.onload = () => {
+                        const attempts = [{
+                            maxW: 1600,
+                            q: 0.82
+                        }, {
+                            maxW: 1600,
+                            q: 0.6
+                        }, {
+                            maxW: 1200,
+                            q: 0.55
+                        }, {
+                            maxW: 1000,
+                            q: 0.5
+                        }, {
+                            maxW: 800,
+                            q: 0.45
+                        }, {
+                            maxW: 600,
+                            q: 0.4
+                        }];
+                        let best = null;
+                        for (const a of attempts) {
+                            const scale = Math.min(1, a.maxW / img.width);
+                            const w = Math.max(1, Math.round(img.width * scale));
+                            const h = Math.max(1, Math.round(img.height * scale));
+                            const canvas = document.createElement('canvas');
+                            canvas.width = w;
+                            canvas.height = h;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, w, h);
+                            const dataUrl = canvas.toDataURL('image/jpeg', a.q);
+                            best = dataUrl;
+                            if (dataUrl.length <= MAX_PROOF_CHARS) {
+                                resolve(dataUrl);
+                                return;
+                            }
+                        }
+                        reject(new Error('Image trop volumineuse même après compression. Essaie une capture plus légère.'));
+                    };
+                    img.src = reader.result;
+                };
+                reader.readAsDataURL(file);
+            });
         }
-        reject(new Error('Image trop volumineuse même après compression. Essaie une capture plus légère.'));
-      };
-      img.src = reader.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
 
-async function handleProofFileChange(e){
-  const file = e.target.files[0];
-  const preview = document.getElementById('sub-proof-preview');
-  currentProofDataUrl = null;
-  if(!file){ preview.innerHTML=''; return; }
-  preview.innerHTML = '<div style="font-size:12.5px; color:var(--text-mid);">Compression de l\'image...</div>';
-  try{
-    const dataUrl = await compressImage(file);
-    currentProofDataUrl = dataUrl;
-    const sizeKB = Math.round(dataUrl.length * 0.75 / 1024);
-    preview.innerHTML = `<img src="${dataUrl}" style="max-width:100%; max-height:180px; border-radius:8px; border:1px solid var(--border-soft); display:block;"><div style="font-size:11.5px; color:var(--text-low); margin-top:4px;">${sizeKB} Ko après compression</div>`;
-  }catch(err){
-    preview.innerHTML = `<div style="font-size:12.5px; color:var(--red);">${err.message}</div>`;
-    e.target.value = '';
-  }
-}
+        async function handleProofFileChange(e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('sub-proof-preview');
+            currentProofDataUrl = null;
+            if (!file) {
+                preview.innerHTML = '';
+                return;
+            }
+            preview.innerHTML = '<div style="font-size:12.5px; color:var(--text-mid);">Compression de l\'image...</div>';
+            try {
+                const dataUrl = await compressImage(file);
+                currentProofDataUrl = dataUrl;
+                const sizeKB = Math.round(dataUrl.length * 0.75 / 1024);
+                preview.innerHTML = `<img src="${dataUrl}" style="max-width:100%; max-height:180px; border-radius:8px; border:1px solid var(--border-soft); display:block;"><div style="font-size:11.5px; color:var(--text-low); margin-top:4px;">${sizeKB} Ko après compression</div>`;
+            } catch (err) {
+                preview.innerHTML = `<div style="font-size:12.5px; color:var(--red);">${err.message}</div>`;
+                e.target.value = '';
+            }
+        }
 
-/* -------- SUPABASE CONNECTION -------- */
-const SUPABASE_URL = 'https://jgikbbgnuspxqqspwxuu.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_0isgKQa_oqvKACrnP8bTTg_e_z6ACH7';
-const REST = SUPABASE_URL + '/rest/v1';
-const sbHeaders = { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' };
+        /* -------- SUPABASE CONNECTION -------- */
+        const SUPABASE_URL = 'https://jgikbbgnuspxqqspwxuu.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_0isgKQa_oqvKACrnP8bTTg_e_z6ACH7';
+        const REST = SUPABASE_URL + '/rest/v1';
+        const sbHeaders = {
+            'apikey': SUPABASE_KEY,
+            'Content-Type': 'application/json'
+        };
 
-async function sbGet(table, query){
-  const res = await fetch(`${REST}/${table}?select=*${query || ''}`, { headers: sbHeaders });
-  if(!res.ok) throw new Error('Erreur de chargement (' + table + ')');
-  return await res.json();
-}
-async function sbInsert(table, row){
-  const res = await fetch(`${REST}/${table}`, { method:'POST', headers: {...sbHeaders, 'Prefer':'return=representation'}, body: JSON.stringify(row) });
-  if(!res.ok){
-    const err = new Error('Erreur d\'insertion (' + table + ')');
-    err.status = res.status;
-    throw err;
-  }
-  const data = await res.json();
-  return data[0];
-}
-async function sbUpdate(table, id, patch){
-  const res = await fetch(`${REST}/${table}?id=eq.${id}`, { method:'PATCH', headers: {...sbHeaders, 'Prefer':'return=representation'}, body: JSON.stringify(patch) });
-  if(!res.ok) throw new Error('Erreur de mise à jour (' + table + ')');
-  const data = await res.json();
-  return data[0];
-}
-async function sbDelete(table, id){
-  const res = await fetch(`${REST}/${table}?id=eq.${id}`, { method:'DELETE', headers: sbHeaders });
-  if(!res.ok) throw new Error('Erreur de suppression (' + table + ')');
-}
+        async function sbGet(table, query) {
+            const res = await fetch(`${REST}/${table}?select=*${query || ''}`, {
+                headers: sbHeaders
+            });
+            if (!res.ok) throw new Error('Erreur de chargement (' + table + ')');
+            return await res.json();
+        }
+        async function sbInsert(table, row) {
+            const res = await fetch(`${REST}/${table}`, {
+                method: 'POST',
+                headers: {...sbHeaders,
+                    'Prefer': 'return=representation'
+                },
+                body: JSON.stringify(row)
+            });
+            if (!res.ok) {
+                const err = new Error('Erreur d\'insertion (' + table + ')');
+                err.status = res.status;
+                throw err;
+            }
+            const data = await res.json();
+            return data[0];
+        }
+        async function sbUpdate(table, id, patch) {
+            const res = await fetch(`${REST}/${table}?id=eq.${id}`, {
+                method: 'PATCH',
+                headers: {...sbHeaders,
+                    'Prefer': 'return=representation'
+                },
+                body: JSON.stringify(patch)
+            });
+            if (!res.ok) throw new Error('Erreur de mise à jour (' + table + ')');
+            const data = await res.json();
+            return data[0];
+        }
+        async function sbDelete(table, id) {
+            const res = await fetch(`${REST}/${table}?id=eq.${id}`, {
+                method: 'DELETE',
+                headers: sbHeaders
+            });
+            if (!res.ok) throw new Error('Erreur de suppression (' + table + ')');
+        }
 
-function mapClipper(r){ return { id:r.id, pseudo:r.pseudo, email:r.email||'', password:r.password, joinedAt:r.joined_at, mobileMoneyNumber:r.mobile_money_number||'', mobileMoneyName:r.mobile_money_name||'' }; }
-function mapVideo(r){ return { id:r.id, clipperId:r.clipper_id, title:r.title, platform:r.platform, url:r.url, views:r.views||0, note:r.note||'', proofImage:r.proof_image||null, status:r.status, submittedAt:r.submitted_at, rejectionReason:r.rejection_reason||'' }; }
-function mapPayment(r){ return { id:r.id, clipperId:r.clipper_id, amount:r.amount, date:r.date, verified:r.verified, proofImage:r.proof_image||null, acknowledged:r.acknowledged||false }; }
-function mapSettings(r){ return { pricePer1000:r.price_per_1000, objectiveViews:r.objective_views, balanceAdjustment:r.balance_adjustment||0 }; }
-function mapInviteKey(r){ return { id:r.id, code:r.code, used:r.used, usedBy:r.used_by, usedAt:r.used_at, createdAt:r.created_at }; }
+        function mapClipper(r) {
+            return {
+                id: r.id,
+                pseudo: r.pseudo,
+                email: r.email || '',
+                password: r.password,
+                joinedAt: r.joined_at,
+                mobileMoneyNumber: r.mobile_money_number || '',
+                mobileMoneyName: r.mobile_money_name || ''
+            };
+        }
 
-function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
-function normalizeUrl(u){ return (u||'').trim().toLowerCase().replace(/\/+$/,''); }
-function fmtMoney(n){ n = Math.round(n||0); return n.toLocaleString('fr-FR').replace(/,/g,' ').replace(/\u00A0/g,' ') + ' FCFA'; }
-function fmtNum(n){ return Math.round(n||0).toLocaleString('fr-FR').replace(/\u00A0/g,' '); }
-function initials(name){ return (name||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
-function showToast(msg, type){
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'toast show ' + (type||'success');
-  setTimeout(()=>{ t.classList.remove('show'); }, 2600);
-}
+        function mapVideo(r) {
+            return {
+                id: r.id,
+                clipperId: r.clipper_id,
+                title: r.title,
+                platform: r.platform,
+                url: r.url,
+                views: r.views || 0,
+                note: r.note || '',
+                proofImage: r.proof_image || null,
+                status: r.status,
+                submittedAt: r.submitted_at,
+                rejectionReason: r.rejection_reason || ''
+            };
+        }
 
-async function loadAll(){
-  try{ DATA.clippers = (await sbGet('clippers')).map(mapClipper); }catch(e){ console.error(e); DATA.clippers = DATA.clippers || []; }
-  try{ DATA.videos = (await sbGet('videos')).map(mapVideo); }catch(e){ console.error(e); DATA.videos = DATA.videos || []; }
-  try{ DATA.payments = (await sbGet('payments')).map(mapPayment); }catch(e){ console.error(e); DATA.payments = DATA.payments || []; }
-  try{
-    const rows = await sbGet('settings', '&id=eq.1');
-    DATA.settings = rows[0] ? mapSettings(rows[0]) : { pricePer1000:100, objectiveViews:10000000, balanceAdjustment:0 };
-  }catch(e){ console.error(e); DATA.settings = DATA.settings || { pricePer1000:100, objectiveViews:10000000, balanceAdjustment:0 }; }
-  try{ DATA.inviteKeys = (await sbGet('invitation_keys')).map(mapInviteKey); }catch(e){ console.error(e); DATA.inviteKeys = DATA.inviteKeys || []; }
-}
+        function mapPayment(r) {
+            return {
+                id: r.id,
+                clipperId: r.clipper_id,
+                amount: r.amount,
+                date: r.date,
+                verified: r.verified,
+                proofImage: r.proof_image || null,
+                acknowledged: r.acknowledged || false
+            };
+        }
 
-async function trySession(){
-  try{
-    const s = await window.storage.get('session', false);
-    if(s && s.value){ SESSION = JSON.parse(s.value); }
-  }catch(e){ SESSION = null; }
-}
-async function persistSession(){
-  try{ await window.storage.set('session', JSON.stringify(SESSION), false); }catch(e){}
-}
-async function clearSession(){
-  try{ await window.storage.delete('session', false); }catch(e){}
-}
+        function mapSettings(r) {
+            return {
+                pricePer1000: r.price_per_1000,
+                objectiveViews: r.objective_views,
+                balanceAdjustment: r.balance_adjustment || 0
+            };
+        }
 
-/* -------- computed helpers -------- */
-function clipperStats(clipperId){
-  const vids = DATA.videos.filter(v => v.clipperId === clipperId);
-  const validated = vids.filter(v => v.status === 'validated');
-  const views = validated.reduce((a,v)=>a + (v.views||0), 0);
-  const gains = views / 1000 * (DATA.settings.pricePer1000 || 0);
-  const clipperPayments = DATA.payments.filter(p => p.clipperId === clipperId);
-  const paid = clipperPayments.reduce((a,p)=>a+(p.amount||0),0);
-  const allAcknowledged = clipperPayments.length > 0 && clipperPayments.every(p => p.acknowledged);
-  return { vids, validated, views, gains, paid, remaining: Math.max(0, gains - paid), allAcknowledged };
-}
-function allValidatedViews(){ return DATA.videos.filter(v=>v.status==='validated').reduce((a,v)=>a+(v.views||0),0); }
-function paymentStatusBadge(s){
-  if(s.gains<=0) return '<span class="badge badge-pending">Aucun gain</span>';
-  if(s.remaining>0) return '<span class="badge badge-pending">Dû</span>';
-  if(!s.allAcknowledged) return '<span class="badge badge-pending">En attente de confirmation</span>';
-  return '<span class="badge badge-paid">✅ Paiement certifié</span>';
-}
-function allGains(){ return allValidatedViews()/1000*(DATA.settings.pricePer1000||0); }
+        function mapInviteKey(r) {
+            return {
+                id: r.id,
+                code: r.code,
+                used: r.used,
+                usedBy: r.used_by,
+                usedAt: r.used_at,
+                createdAt: r.created_at
+            };
+        }
 
-const MONTH_NAMES = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-function monthKey(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
-function monthLabel(d){ return MONTH_NAMES[d.getMonth()] + ' ' + d.getFullYear(); }
+        function uid() {
+            return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+        }
 
-function rankingList(period){
-  period = period || 'global';
-  let filterFn = () => true;
-  if(period !== 'global'){
-    const [y, m] = period.split('-').map(Number);
-    const start = new Date(y, m-1, 1);
-    const end = new Date(y, m, 1);
-    filterFn = v => { const d = new Date(v.submittedAt); return d >= start && d < end; };
-  }
-  return DATA.clippers.map(c=>{
-    const overall = clipperStats(c.id);
-    const periodVids = overall.validated.filter(filterFn);
-    const views = periodVids.reduce((a,v)=>a+(v.views||0), 0);
-    const gains = views / 1000 * (DATA.settings.pricePer1000 || 0);
-    return { ...c, views, videos: periodVids.length, gains, paidFull: overall.remaining<=0 && overall.gains>0 && overall.allAcknowledged };
-  }).sort((a,b)=>b.views-a.views);
-}
-function platformTag(p, url){
-  const map = { 'TikTok':'pink', 'YouTube':'coral', 'Autre':'blue' };
-  const color = 'var(--' + (map[p] || 'blue') + ')';
-  if(url){
-    return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="platform-tag" style="color:${color}; border-color:${color}66; text-decoration:none; cursor:pointer;" title="Voir la vidéo sur ${p}">${p} ↗</a>`;
-  }
-  return `<span class="platform-tag" style="color:${color}; border-color:${color}66;">${p}</span>`;
-}
-function statusBadge(status){
-  if(status==='pending') return '<span class="badge badge-pending">En attente</span>';
-  if(status==='validated') return '<span class="badge badge-validated">Validé</span>';
-  return '<span class="badge badge-rejected">Rejeté</span>';
-}
+        function normalizeUrl(u) {
+            return (u || '').trim().toLowerCase().replace(/\/+$/, '');
+        }
 
-/* -------- LOGIN -------- */
-function setLoginTab(tab){
-  document.getElementById('tab-clipper').classList.toggle('active', tab==='clipper');
-  document.getElementById('tab-admin').classList.toggle('active', tab==='admin');
-  document.getElementById('clipper-login-block').style.display = tab==='clipper' ? 'block':'none';
-  document.getElementById('admin-login-block').style.display = tab==='admin' ? 'block':'none';
-}
+        function fmtMoney(n) {
+            n = Math.round(n || 0);
+            return n.toLocaleString('fr-FR').replace(/,/g, ' ').replace(/\u00A0/g, ' ') + ' FCFA';
+        }
 
-/* -------- RECENT ACCOUNTS (local device only, for privacy) -------- */
-async function loadRecentAccounts(){
-  try{
-    const r = await window.storage.get('recent-accounts', false);
-    return r && r.value ? JSON.parse(r.value) : [];
-  }catch(e){ return []; }
-}
-async function addRecentAccount(pseudo){
-  try{
-    let list = await loadRecentAccounts();
-    list = list.filter(p => p.toLowerCase() !== pseudo.toLowerCase());
-    list.unshift(pseudo);
-    list = list.slice(0, 5);
-    await window.storage.set('recent-accounts', JSON.stringify(list), false);
-    renderRecentAccounts(list);
-  }catch(e){}
-}
-function renderRecentAccounts(list){
-  const el = document.getElementById('recent-clippers-chips');
-  if(!el) return;
-  if(!list || !list.length){ el.innerHTML = ''; return; }
-  el.innerHTML = `
+        function fmtNum(n) {
+            return Math.round(n || 0).toLocaleString('fr-FR').replace(/\u00A0/g, ' ');
+        }
+
+        function initials(name) {
+            return (name || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+        }
+
+        function showToast(msg, type) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast show ' + (type || 'success');
+            setTimeout(() => {
+                t.classList.remove('show');
+            }, 2600);
+        }
+
+        async function loadAll() {
+            try {
+                DATA.clippers = (await sbGet('clippers')).map(mapClipper);
+            } catch (e) {
+                console.error(e);
+                DATA.clippers = DATA.clippers || [];
+            }
+            try {
+                DATA.videos = (await sbGet('videos')).map(mapVideo);
+            } catch (e) {
+                console.error(e);
+                DATA.videos = DATA.videos || [];
+            }
+            try {
+                DATA.payments = (await sbGet('payments')).map(mapPayment);
+            } catch (e) {
+                console.error(e);
+                DATA.payments = DATA.payments || [];
+            }
+            try {
+                const rows = await sbGet('settings', '&id=eq.1');
+                DATA.settings = rows[0] ? mapSettings(rows[0]) : {
+                    pricePer1000: 100,
+                    objectiveViews: 10000000,
+                    balanceAdjustment: 0
+                };
+            } catch (e) {
+                console.error(e);
+                DATA.settings = DATA.settings || {
+                    pricePer1000: 100,
+                    objectiveViews: 10000000,
+                    balanceAdjustment: 0
+                };
+            }
+            try {
+                DATA.inviteKeys = (await sbGet('invitation_keys')).map(mapInviteKey);
+            } catch (e) {
+                console.error(e);
+                DATA.inviteKeys = DATA.inviteKeys || [];
+            }
+        }
+
+        async function trySession() {
+            try {
+                const s = await window.storage.get('session', false);
+                if (s && s.value) {
+                    SESSION = JSON.parse(s.value);
+                }
+            } catch (e) {
+                SESSION = null;
+            }
+        }
+        async function persistSession() {
+            try {
+                await window.storage.set('session', JSON.stringify(SESSION), false);
+            } catch (e) {}
+        }
+        async function clearSession() {
+            try {
+                await window.storage.delete('session', false);
+            } catch (e) {}
+        }
+
+        /* -------- computed helpers -------- */
+        function clipperStats(clipperId) {
+            const vids = DATA.videos.filter(v => v.clipperId === clipperId);
+            const validated = vids.filter(v => v.status === 'validated');
+            const views = validated.reduce((a, v) => a + (v.views || 0), 0);
+            const gains = views / 1000 * (DATA.settings.pricePer1000 || 0);
+            const clipperPayments = DATA.payments.filter(p => p.clipperId === clipperId);
+            const paid = clipperPayments.reduce((a, p) => a + (p.amount || 0), 0);
+            const allAcknowledged = clipperPayments.length > 0 && clipperPayments.every(p => p.acknowledged);
+            return {
+                vids,
+                validated,
+                views,
+                gains,
+                paid,
+                remaining: Math.max(0, gains - paid),
+                allAcknowledged
+            };
+        }
+
+        function allValidatedViews() {
+            return DATA.videos.filter(v => v.status === 'validated').reduce((a, v) => a + (v.views || 0), 0);
+        }
+
+        function paymentStatusBadge(s) {
+            if (s.gains <= 0) return '<span class="badge badge-pending">Aucun gain</span>';
+            if (s.remaining > 0) return '<span class="badge badge-pending">Dû</span>';
+            if (!s.allAcknowledged) return '<span class="badge badge-pending">En attente de confirmation</span>';
+            return '<span class="badge badge-paid">✅ Paiement certifié</span>';
+        }
+
+        function allGains() {
+            return allValidatedViews() / 1000 * (DATA.settings.pricePer1000 || 0);
+        }
+
+        const MONTH_NAMES = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+
+        function monthKey(d) {
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        }
+
+        function monthLabel(d) {
+            return MONTH_NAMES[d.getMonth()] + ' ' + d.getFullYear();
+        }
+
+        function rankingList(period) {
+            period = period || 'global';
+            let filterFn = () => true;
+            if (period !== 'global') {
+                const [y, m] = period.split('-').map(Number);
+                const start = new Date(y, m - 1, 1);
+                const end = new Date(y, m, 1);
+                filterFn = v => {
+                    const d = new Date(v.submittedAt);
+                    return d >= start && d < end;
+                };
+            }
+            return DATA.clippers.map(c => {
+                const overall = clipperStats(c.id);
+                const periodVids = overall.validated.filter(filterFn);
+                const views = periodVids.reduce((a, v) => a + (v.views || 0), 0);
+                const gains = views / 1000 * (DATA.settings.pricePer1000 || 0);
+                return {...c,
+                    views,
+                    videos: periodVids.length,
+                    gains,
+                    paidFull: overall.remaining <= 0 && overall.gains > 0 && overall.allAcknowledged
+                };
+            }).sort((a, b) => b.views - a.views);
+        }
+
+        function platformTag(p, url) {
+            const map = {
+                'TikTok': 'pink',
+                'YouTube': 'coral',
+                'Autre': 'blue'
+            };
+            const color = 'var(--' + (map[p] || 'blue') + ')';
+            if (url) {
+                return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="platform-tag" style="color:${color}; border-color:${color}66; text-decoration:none; cursor:pointer;" title="Voir la vidéo sur ${p}">${p} ↗</a>`;
+            }
+            return `<span class="platform-tag" style="color:${color}; border-color:${color}66;">${p}</span>`;
+        }
+
+        function statusBadge(status) {
+            if (status === 'pending') return '<span class="badge badge-pending">En attente</span>';
+            if (status === 'validated') return '<span class="badge badge-validated">Validé</span>';
+            return '<span class="badge badge-rejected">Rejeté</span>';
+        }
+
+        /* -------- LOGIN -------- */
+        function setLoginTab(tab) {
+            document.getElementById('tab-clipper').classList.toggle('active', tab === 'clipper');
+            document.getElementById('tab-admin').classList.toggle('active', tab === 'admin');
+            document.getElementById('clipper-login-block').style.display = tab === 'clipper' ? 'block' : 'none';
+            document.getElementById('admin-login-block').style.display = tab === 'admin' ? 'block' : 'none';
+        }
+
+        /* -------- RECENT ACCOUNTS (local device only, for privacy) -------- */
+        async function loadRecentAccounts() {
+            try {
+                const r = await window.storage.get('recent-accounts', false);
+                return r && r.value ? JSON.parse(r.value) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+        async function addRecentAccount(pseudo) {
+            try {
+                let list = await loadRecentAccounts();
+                list = list.filter(p => p.toLowerCase() !== pseudo.toLowerCase());
+                list.unshift(pseudo);
+                list = list.slice(0, 5);
+                await window.storage.set('recent-accounts', JSON.stringify(list), false);
+                renderRecentAccounts(list);
+            } catch (e) {}
+        }
+
+        function renderRecentAccounts(list) {
+            const el = document.getElementById('recent-clippers-chips');
+            if (!el) return;
+            if (!list || !list.length) {
+                el.innerHTML = '';
+                return;
+            }
+            el.innerHTML = `
     <div style="font-size:11px; color:var(--text-low); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin:4px 0 8px;">Comptes récents sur cet appareil</div>
     <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
       ${list.map(p => `<button type="button" class="btn btn-ghost btn-sm" onclick="pickRecentAccount(this.dataset.p)" data-p="${p.replace(/"/g,'&quot;')}">${p}</button>`).join('')}
@@ -886,6 +2063,8 @@ function showView(name){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===name));
   renderAll();
   if(name==='parametres'){
+    fillExportPeriods();
+    updateExportSummary();
     document.getElementById('setting-price').value = DATA.settings.pricePer1000;
     document.getElementById('setting-objective').value = DATA.settings.objectiveViews;
     document.getElementById('setting-adjustment').value = DATA.settings.balanceAdjustment || 0;
@@ -1308,20 +2487,464 @@ async function saveSettings(){
   }catch(e){ showToast('Erreur lors de l\'enregistrement', 'error'); }
 }
 
-function exportCSV(){
-  let csv = 'Pseudo;Vues validees;Videos validees;Gains (FCFA);Paye (FCFA);Restant (FCFA)\n';
-  rankingList().forEach(c=>{
-    const s = clipperStats(c.id);
-    csv += `${c.pseudo};${s.views};${s.validated.length};${Math.round(s.gains)};${Math.round(s.paid)};${Math.round(s.remaining)}\n`;
-  });
-  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'alpdy-agency-export.csv'; a.click();
-  URL.revokeObjectURL(url);
-  showToast('Export CSV téléchargé.');
+/* -------- EXPORT (Excel / PDF / CSV) -------- */
+const EXCELJS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';
+const EXPORT_STATUS_LABEL = { pending: 'En attente', validated: 'Validé', rejected: 'Rejeté' };
+function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
-function exportPDF(){ window.print(); }
+function safeHttpUrl(u) {
+    return /^https?:\/\//i.test(String(u || '').trim()) ? String(u).trim() : '';
+}
+function fillExportPeriods() {
+    const sel = document.getElementById('export-period');
+    if (!sel) return;
+    const keep = sel.value || 'global';
+    sel.innerHTML = buildPeriodOptions().map(o => `<option value="${o.key}">${o.label}</option>`).join('');
+    sel.value = keep;
+    if (sel.value !== keep) sel.value = 'global';
+}
+function exportPeriodValue() {
+    const sel = document.getElementById('export-period');
+    return sel && sel.value ? sel.value : 'global';
+}
+function periodRange(period) {
+    if (period === 'global') return null;
+    const [y, m] = period.split('-').map(Number);
+    return [new Date(y, m - 1, 1), new Date(y, m, 1)];
+}
+function inRange(dateStr, range) {
+    if (!range) return true;
+    const d = new Date(dateStr);
+    return d >= range[0] && d < range[1];
+}
+function buildExportData(period) {
+    period = period || 'global';
+    const range = periodRange(period);
+    const opt = buildPeriodOptions().find(o => o.key === period);
+    const label = period === 'global' ? 'Total (cumul)' : (opt ? opt.label : period);
+    const pseudoOf = id => { const c = DATA.clippers.find(c => c.id === id); return c ? c.pseudo : '(supprimé)'; };
+    const videos = DATA.videos.filter(v => inRange(v.submittedAt, range))
+        .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt))
+        .map(v => ({
+            clipperId: v.clipperId, pseudo: pseudoOf(v.clipperId), title: v.title || '', platform: v.platform || '',
+            url: v.url || '', views: v.views || 0, status: v.status, date: new Date(v.submittedAt), reason: v.rejectionReason || ''
+        }));
+    const payments = DATA.payments.filter(p => inRange(p.date, range))
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .map(p => ({ clipperId: p.clipperId, pseudo: pseudoOf(p.clipperId), amount: p.amount || 0, date: new Date(p.date), acknowledged: !!p.acknowledged }));
+    const ranking = rankingList(period).map((c, i) => {
+        const paid = payments.filter(p => p.clipperId === c.id).reduce((a, p) => a + p.amount, 0);
+        const own = payments.filter(p => p.clipperId === c.id);
+        const remaining = Math.max(0, c.gains - paid);
+        let status;
+        if (c.gains <= 0) status = 'Aucun gain';
+        else if (remaining > 0) status = 'Dû';
+        else if (!own.every(p => p.acknowledged)) status = 'En attente de confirmation';
+        else status = 'Payé';
+        return { rank: i + 1, pseudo: c.pseudo, videos: c.videos, views: c.views, gains: c.gains, paid, remaining, status };
+    });
+    const sum = (arr, k) => arr.reduce((a, x) => a + (x[k] || 0), 0);
+    return {
+        period, label, generatedAt: new Date(), price: DATA.settings.pricePer1000 || 0,
+        videos, payments, ranking,
+        totals: {
+            submitted: videos.length,
+            validated: videos.filter(v => v.status === 'validated').length,
+            pending: videos.filter(v => v.status === 'pending').length,
+            rejected: videos.filter(v => v.status === 'rejected').length,
+            views: sum(ranking, 'views'), gains: sum(ranking, 'gains'), paid: sum(ranking, 'paid'), remaining: sum(ranking, 'remaining')
+        }
+    };
+}
+function exportFileName(d, ext) {
+    const p = pad2 => String(pad2).padStart(2, '0');
+    const g = d.generatedAt;
+    const stamp = g.getFullYear() + '-' + p(g.getMonth() + 1) + '-' + p(g.getDate());
+    const per = d.period === 'global' ? 'total' : d.period;
+    return `alpdy-agency_${per}_${stamp}.${ext}`;
+}
+function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+function updateExportSummary() {
+    const el = document.getElementById('export-summary');
+    if (!el) return;
+    const d = buildExportData(exportPeriodValue());
+    el.innerHTML = [
+        ['Vidéos', fmtNum(d.totals.submitted)],
+        ['Vues validées', fmtNum(d.totals.views)],
+        ['Gains', fmtMoney(d.totals.gains)],
+        ['Reste à payer', fmtMoney(d.totals.remaining)]
+    ].map(([k, v]) => `<span class="export-chip">${k} <b>${v}</b></span>`).join('');
+}
+function setExportBusy(id, busy) {
+    const b = document.getElementById(id);
+    if (!b) return;
+    b.disabled = busy;
+    const go = b.querySelector('.go');
+    if (go) {
+        if (busy) { go.dataset.t = go.textContent; go.textContent = 'Préparation…'; }
+        else if (go.dataset.t) { go.textContent = go.dataset.t; }
+    }
+}
+
+/* ---- CSV ---- */
+function csvCell(v) {
+    let s = String(v == null ? '' : v);
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return /[";\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+function exportCSV() {
+    try {
+        const d = buildExportData(exportPeriodValue());
+        const head = ['Rang', 'Clipper', 'Vidéos validées', 'Vues validées', 'Gains (FCFA)', 'Payé (FCFA)', 'Reste dû (FCFA)', 'Statut paiement'];
+        const lines = [head.join(';')];
+        d.ranking.forEach(r => lines.push([r.rank, r.pseudo, r.videos, r.views, Math.round(r.gains), Math.round(r.paid), Math.round(r.remaining), r.status].map(csvCell).join(';')));
+        lines.push(['', 'TOTAL', d.ranking.reduce((a, r) => a + r.videos, 0), d.totals.views, Math.round(d.totals.gains), Math.round(d.totals.paid), Math.round(d.totals.remaining), ''].map(csvCell).join(';'));
+        const blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+        downloadBlob(blob, exportFileName(d, 'csv'));
+        showToast('Export CSV téléchargé.');
+    } catch (e) { console.error(e); showToast('Erreur lors de l\'export CSV', 'error'); }
+}
+
+/* ---- EXCEL (.xlsx) ---- */
+function loadExcelJS() {
+    return new Promise((resolve, reject) => {
+        if (window.ExcelJS) return resolve(window.ExcelJS);
+        const s = document.createElement('script');
+        s.src = EXCELJS_URL;
+        s.onload = () => window.ExcelJS ? resolve(window.ExcelJS) : reject(new Error('ExcelJS introuvable'));
+        s.onerror = () => reject(new Error('Chargement impossible'));
+        document.head.appendChild(s);
+    });
+}
+function buildWorkbook(ExcelJS, d) {
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'Alpdy Agency'; wb.created = d.generatedAt;
+    const VIOLET = 'FF7C5CFC', DARK = 'FF4C3D9E', LIGHT = 'FFF3F0FF', BAND = 'FFFAF9FF', GREY = 'FF67667E', LINE = 'FFE3E3EE', WHITE = 'FFFFFFFF';
+    const FONT = 'Arial';
+    const thin = { style: 'thin', color: { argb: LINE } };
+    const border = { top: thin, left: thin, bottom: thin, right: thin };
+    const solid = argb => ({ type: 'pattern', pattern: 'solid', fgColor: { argb } });
+    const STATUS = {
+        validated: { bg: 'FFD8F5E6', fg: 'FF1FA971' },
+        pending: { bg: 'FFFFF1D6', fg: 'FFB26B00' },
+        rejected: { bg: 'FFFBDDE2', fg: 'FFD6304A' }
+    };
+    const PAY_STATUS = {
+        'Payé': STATUS.validated, 'Dû': STATUS.rejected, 'En attente de confirmation': STATUS.pending, 'Aucun gain': { bg: 'FFEEEEF5', fg: GREY }
+    };
+    const xlDate = dt => new Date(Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate()));
+    const genLabel = d.generatedAt.toLocaleDateString('fr-FR') + ' à ' + d.generatedAt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+    function sheet(name, widths, title) {
+        const ws = wb.addWorksheet(name, {
+            views: [{ state: 'frozen', ySplit: 0, showGridLines: false }],
+            pageSetup: { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0, paperSize: 9 }
+        });
+        widths.forEach((w, i) => { ws.getColumn(i + 1).width = w; });
+        const n = widths.length;
+        ws.mergeCells(1, 1, 1, n);
+        const t = ws.getCell(1, 1);
+        t.value = title; t.font = { name: FONT, size: 18, bold: true, color: { argb: WHITE } };
+        t.fill = solid(VIOLET); t.alignment = { vertical: 'middle', indent: 1 };
+        ws.getRow(1).height = 38;
+        ws.mergeCells(2, 1, 2, n);
+        const s = ws.getCell(2, 1);
+        s.value = `Période : ${d.label}   ·   Généré le ${genLabel}   ·   Prix : ${fmtNum(d.price)} FCFA pour 1 000 vues`;
+        s.font = { name: FONT, size: 10, bold: true, color: { argb: DARK } };
+        s.fill = solid(LIGHT); s.alignment = { vertical: 'middle', indent: 1 };
+        ws.getRow(2).height = 24;
+        return ws;
+    }
+    function headerRow(ws, rowIdx, labels, centerCols) {
+        const row = ws.getRow(rowIdx);
+        labels.forEach((l, i) => {
+            const c = row.getCell(i + 1);
+            c.value = l; c.font = { name: FONT, size: 10, bold: true, color: { argb: WHITE } };
+            c.fill = solid(DARK); c.border = border;
+            c.alignment = { vertical: 'middle', horizontal: centerCols.includes(i + 1) ? 'center' : 'left', indent: centerCols.includes(i + 1) ? 0 : 1, wrapText: true };
+        });
+        row.height = 28;
+    }
+    function styleBody(ws, rowIdx, ncols, i, opts) {
+        const row = ws.getRow(rowIdx);
+        for (let c = 1; c <= ncols; c++) {
+            const cell = row.getCell(c);
+            cell.font = { name: FONT, size: 10, ...(opts.fonts && opts.fonts[c] ? opts.fonts[c] : {}) };
+            cell.fill = solid(i % 2 === 0 ? 'FFFFFFFF' : BAND);
+            cell.border = border;
+            const al = (opts.align && opts.align[c]) || 'left';
+            cell.alignment = { vertical: 'middle', horizontal: al, indent: al === 'left' ? 1 : (al === 'right' ? 1 : 0), wrapText: !!(opts.wrap && opts.wrap.includes(c)) };
+            if (opts.fmt && opts.fmt[c]) cell.numFmt = opts.fmt[c];
+        }
+        row.height = 22;
+    }
+    function badge(cell, st) {
+        cell.fill = solid(st.bg); cell.font = { name: FONT, size: 10, bold: true, color: { argb: st.fg } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+    }
+    function totalRow(ws, rowIdx, ncols) {
+        const row = ws.getRow(rowIdx);
+        for (let c = 1; c <= ncols; c++) {
+            const cell = row.getCell(c);
+            cell.fill = solid(LIGHT); cell.border = { top: { style: 'medium', color: { argb: VIOLET } }, left: thin, right: thin, bottom: thin };
+            cell.font = { name: FONT, size: 10, bold: true, color: { argb: DARK } };
+            cell.alignment = { vertical: 'middle', horizontal: c === 2 ? 'left' : 'center', indent: c === 2 ? 1 : 0 };
+        }
+        row.height = 24;
+    }
+    function emptyRow(ws, rowIdx, ncols, msg) {
+        ws.mergeCells(rowIdx, 1, rowIdx, ncols);
+        const c = ws.getCell(rowIdx, 1);
+        c.value = msg; c.font = { name: FONT, size: 10, italic: true, color: { argb: GREY } };
+        c.alignment = { horizontal: 'center', vertical: 'middle' }; ws.getRow(rowIdx).height = 28;
+    }
+
+    /* ----- Feuille 1 : Résumé ----- */
+    const ws1 = sheet('Résumé', [8, 24, 16, 18, 18, 18, 18, 26], '📊  Alpdy Agency — Résumé de performance');
+    const kpis = [
+        ['VIDÉOS SOUMISES', d.totals.submitted, '#,##0'],
+        ['VUES VALIDÉES', d.totals.views, '#,##0'],
+        ['GAINS GÉNÉRÉS (FCFA)', Math.round(d.totals.gains), '#,##0'],
+        ['RESTE À PAYER (FCFA)', Math.round(d.totals.remaining), '#,##0']
+    ];
+    kpis.forEach(([lab, val, fmt], i) => {
+        const c0 = 1 + i * 2;
+        ws1.mergeCells(4, c0, 4, c0 + 1); ws1.mergeCells(5, c0, 5, c0 + 1);
+        const a = ws1.getCell(4, c0), b = ws1.getCell(5, c0);
+        a.value = lab; a.font = { name: FONT, size: 9, bold: true, color: { argb: GREY } }; a.alignment = { horizontal: 'center', vertical: 'middle' };
+        b.value = val; b.numFmt = fmt; b.font = { name: FONT, size: 18, bold: true, color: { argb: DARK } }; b.alignment = { horizontal: 'center', vertical: 'middle' };
+        [4, 5].forEach(r => [c0, c0 + 1].forEach(c => { ws1.getCell(r, c).fill = solid(LIGHT); }));
+        ws1.getCell(4, c0).border = { top: { style: 'medium', color: { argb: VIOLET } } };
+        ws1.getCell(4, c0 + 1).border = { top: { style: 'medium', color: { argb: VIOLET } } };
+    });
+    ws1.getRow(4).height = 20; ws1.getRow(5).height = 36;
+    ws1.getCell(6, 1).value = 'Classement des clippers';
+    ws1.getCell(6, 1).font = { name: FONT, size: 12, bold: true, color: { argb: DARK } };
+    ws1.getRow(6).height = 24;
+    const H1 = 7;
+    headerRow(ws1, H1, ['Rang', 'Clipper', 'Vidéos validées', 'Vues validées', 'Gains (FCFA)', 'Payé (FCFA)', 'Reste dû (FCFA)', 'Statut paiement'], [1, 3, 4, 5, 6, 7, 8]);
+    const opts1 = { align: { 1: 'center', 3: 'center', 4: 'right', 5: 'right', 6: 'right', 7: 'right', 8: 'center' }, fmt: { 3: '#,##0', 4: '#,##0', 5: '#,##0', 6: '#,##0', 7: '#,##0' } };
+    const medal = { 1: { bg: 'FFFFE9A8', fg: 'FFB8862E' }, 2: { bg: 'FFE6E7EE', fg: 'FF7C7E8C' }, 3: { bg: 'FFF3D9C6', fg: 'FFA15A2E' } };
+    let r = H1 + 1;
+    if (!d.ranking.length) { emptyRow(ws1, r, 8, 'Aucun clipper inscrit pour le moment.'); r++; }
+    d.ranking.forEach((x, i) => {
+        styleBody(ws1, r, 8, i, opts1);
+        const row = ws1.getRow(r);
+        row.getCell(1).value = x.rank; row.getCell(2).value = x.pseudo; row.getCell(3).value = x.videos;
+        row.getCell(4).value = x.views; row.getCell(5).value = Math.round(x.gains); row.getCell(6).value = Math.round(x.paid);
+        row.getCell(7).value = { formula: `MAX(0,E${r}-F${r})`, result: Math.max(0, Math.round(x.gains) - Math.round(x.paid)) };
+        row.getCell(8).value = x.status;
+        row.getCell(2).font = { name: FONT, size: 10, bold: true };
+        if (x.views > 0 && medal[x.rank]) badge(row.getCell(1), medal[x.rank]);
+        badge(row.getCell(8), PAY_STATUS[x.status] || PAY_STATUS['Aucun gain']);
+        r++;
+    });
+    if (d.ranking.length) {
+        const first = H1 + 1, last = r - 1;
+        totalRow(ws1, r, 8);
+        const row = ws1.getRow(r);
+        row.getCell(2).value = 'TOTAL';
+        const sumOf = k => d.ranking.reduce((a, x) => a + (k === 'videos' ? x.videos : k === 'views' ? x.views : Math.round(x[k])), 0);
+        [[3, 'C', sumOf('videos')], [4, 'D', sumOf('views')], [5, 'E', sumOf('gains')], [6, 'F', sumOf('paid')], [7, 'G', d.ranking.reduce((a, x) => a + Math.max(0, Math.round(x.gains) - Math.round(x.paid)), 0)]].forEach(([c, L, val]) => {
+            row.getCell(c).value = { formula: `SUM(${L}${first}:${L}${last})`, result: val };
+            row.getCell(c).numFmt = '#,##0'; row.getCell(c).alignment = { horizontal: c === 3 ? 'center' : 'right', vertical: 'middle', indent: c === 3 ? 0 : 1 };
+        });
+        r++;
+    }
+    ws1.getCell(r + 1, 1).value = 'Seules les vues au statut « Validé » comptent dans les gains. Le reste dû = gains − paiements enregistrés sur la période.';
+    ws1.getCell(r + 1, 1).font = { name: FONT, size: 9, italic: true, color: { argb: GREY } };
+    ws1.views = [{ state: 'frozen', ySplit: 2, showGridLines: false }];
+
+    /* ----- Feuille 2 : Vidéos ----- */
+    const ws2 = sheet('Vidéos', [6, 20, 38, 14, 14, 14, 14, 42, 30], '🎬  Vidéos postées');
+    const H2 = 4;
+    headerRow(ws2, H2, ['N°', 'Clipper', 'Titre de la vidéo', 'Plateforme', 'Date', 'Vues', 'Statut', 'Lien', 'Motif de rejet'], [1, 4, 5, 6, 7]);
+    const opts2 = { align: { 1: 'center', 4: 'center', 5: 'center', 6: 'right', 7: 'center' }, fmt: { 5: 'dd/mm/yyyy', 6: '#,##0' }, wrap: [3, 9] };
+    r = H2 + 1;
+    if (!d.videos.length) { emptyRow(ws2, r, 9, 'Aucune vidéo sur cette période.'); r++; }
+    d.videos.forEach((v, i) => {
+        styleBody(ws2, r, 9, i, opts2);
+        const row = ws2.getRow(r);
+        row.getCell(1).value = i + 1; row.getCell(2).value = v.pseudo; row.getCell(3).value = v.title;
+        row.getCell(4).value = v.platform; row.getCell(5).value = xlDate(v.date); row.getCell(6).value = v.views;
+        row.getCell(7).value = EXPORT_STATUS_LABEL[v.status] || v.status;
+        const link = safeHttpUrl(v.url);
+        row.getCell(8).value = link ? { text: link, hyperlink: link } : (v.url || '—');
+        if (link) row.getCell(8).font = { name: FONT, size: 10, underline: true, color: { argb: 'FF2F80F0' } };
+        row.getCell(9).value = v.reason || '';
+        row.getCell(2).font = { name: FONT, size: 10, bold: true };
+        badge(row.getCell(7), STATUS[v.status] || STATUS.pending);
+        r++;
+    });
+    if (d.videos.length) {
+        const first = H2 + 1, last = r - 1;
+        totalRow(ws2, r, 9);
+        const row = ws2.getRow(r);
+        row.getCell(2).value = 'TOTAL';
+        row.getCell(6).value = { formula: `SUM(F${first}:F${last})`, result: d.videos.reduce((a, v) => a + v.views, 0) };
+        row.getCell(6).numFmt = '#,##0'; row.getCell(6).alignment = { horizontal: 'right', vertical: 'middle', indent: 1 };
+        row.getCell(7).value = { formula: `COUNTIF(G${first}:G${last},"Validé")&" validée(s)"`, result: d.totals.validated + ' validée(s)' };
+        row.getCell(7).alignment = { horizontal: 'center', vertical: 'middle' };
+        ws2.autoFilter = { from: { row: H2, column: 1 }, to: { row: last, column: 9 } };
+    }
+    ws2.views = [{ state: 'frozen', ySplit: H2, showGridLines: false }];
+
+    /* ----- Feuille 3 : Paiements ----- */
+    const ws3 = sheet('Paiements', [16, 24, 20, 34], '💸  Paiements enregistrés');
+    const H3 = 4;
+    headerRow(ws3, H3, ['Date', 'Clipper', 'Montant (FCFA)', 'Statut'], [1, 3, 4]);
+    const opts3 = { align: { 1: 'center', 3: 'right', 4: 'center' }, fmt: { 1: 'dd/mm/yyyy', 3: '#,##0' } };
+    r = H3 + 1;
+    if (!d.payments.length) { emptyRow(ws3, r, 4, 'Aucun paiement sur cette période.'); r++; }
+    d.payments.forEach((p, i) => {
+        styleBody(ws3, r, 4, i, opts3);
+        const row = ws3.getRow(r);
+        row.getCell(1).value = xlDate(p.date); row.getCell(2).value = p.pseudo; row.getCell(3).value = Math.round(p.amount);
+        row.getCell(4).value = p.acknowledged ? 'Réception confirmée' : 'En attente de confirmation';
+        row.getCell(2).font = { name: FONT, size: 10, bold: true };
+        badge(row.getCell(4), p.acknowledged ? STATUS.validated : STATUS.pending);
+        r++;
+    });
+    if (d.payments.length) {
+        const first = H3 + 1, last = r - 1;
+        totalRow(ws3, r, 4);
+        const row = ws3.getRow(r);
+        row.getCell(2).value = 'TOTAL PAYÉ';
+        row.getCell(3).value = { formula: `SUM(C${first}:C${last})`, result: d.payments.reduce((a, p) => a + Math.round(p.amount), 0) };
+        row.getCell(3).numFmt = '#,##0'; row.getCell(3).alignment = { horizontal: 'right', vertical: 'middle', indent: 1 };
+    }
+    ws3.views = [{ state: 'frozen', ySplit: H3, showGridLines: false }];
+    return wb;
+}
+async function exportExcel() {
+    setExportBusy('export-btn-xlsx', true);
+    try {
+        const ExcelJS = await loadExcelJS();
+        const d = buildExportData(exportPeriodValue());
+        const wb = buildWorkbook(ExcelJS, d);
+        const buf = await wb.xlsx.writeBuffer();
+        downloadBlob(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), exportFileName(d, 'xlsx'));
+        showToast('Export Excel téléchargé.');
+    } catch (e) {
+        console.error(e);
+        showToast('Excel indisponible (connexion ?). Export CSV lancé à la place.', 'error');
+        exportCSV();
+    } finally {
+        setExportBusy('export-btn-xlsx', false);
+    }
+}
+
+/* ---- PDF (rapport imprimable) ---- */
+function buildReportHtml(d) {
+    const g = d.generatedAt;
+    const gen = g.toLocaleDateString('fr-FR') + ' à ' + g.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const medal = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : '#' + r;
+    const pill = (txt, cls) => `<span class="pill ${cls}">${esc(txt)}</span>`;
+    const stCls = { validated: 'ok', pending: 'wait', rejected: 'ko' };
+    const payCls = { 'Payé': 'ok', 'Dû': 'ko', 'En attente de confirmation': 'wait', 'Aucun gain': 'off' };
+    const dt = x => x.toLocaleDateString('fr-FR');
+    const rankRows = d.ranking.length ? d.ranking.map(x => `
+        <tr><td class="c">${medal(x.rank)}</td><td><b>${esc(x.pseudo)}</b></td><td class="c">${fmtNum(x.videos)}</td>
+        <td class="r">${fmtNum(x.views)}</td><td class="r">${fmtMoney(x.gains)}</td><td class="r">${fmtMoney(x.paid)}</td>
+        <td class="r">${fmtMoney(x.remaining)}</td><td class="c">${pill(x.status, payCls[x.status] || 'off')}</td></tr>`).join('')
+        : '<tr><td colspan="8" class="empty">Aucun clipper inscrit.</td></tr>';
+    const vidRows = d.videos.length ? d.videos.map(v => `
+        <tr><td>${dt(v.date)}</td><td><b>${esc(v.pseudo)}</b></td><td>${esc(v.title)}</td><td class="c">${esc(v.platform)}</td>
+        <td class="r">${fmtNum(v.views)}</td><td class="c">${pill(EXPORT_STATUS_LABEL[v.status] || v.status, stCls[v.status] || 'wait')}</td></tr>`).join('')
+        : '<tr><td colspan="6" class="empty">Aucune vidéo sur cette période.</td></tr>';
+    const payRows = d.payments.length ? d.payments.map(p => `
+        <tr><td>${dt(p.date)}</td><td><b>${esc(p.pseudo)}</b></td><td class="r">${fmtMoney(p.amount)}</td>
+        <td class="c">${pill(p.acknowledged ? 'Réception confirmée' : 'En attente de confirmation', p.acknowledged ? 'ok' : 'wait')}</td></tr>`).join('')
+        : '<tr><td colspan="4" class="empty">Aucun paiement sur cette période.</td></tr>';
+    return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Rapport Alpdy Agency — ${esc(d.label)}</title>
+<style>
+@page { size: A4; margin: 14mm 12mm; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; color: #15151F; font-size: 11px; background: #fff; }
+.bar { position: sticky; top: 0; background: #15151F; color: #fff; padding: 10px 18px; display: flex; align-items: center; justify-content: space-between; font-size: 13px; z-index: 5; }
+.bar button { background: #7C5CFC; color: #fff; border: 0; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; }
+.page { max-width: 190mm; margin: 0 auto; padding: 14px 0 30px; }
+.hero { background: linear-gradient(135deg, #7C5CFC, #2F80F0); color: #fff; border-radius: 14px; padding: 22px 24px; display: flex; justify-content: space-between; align-items: center; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo { width: 42px; height: 42px; border-radius: 11px; background: rgba(255,255,255,.22); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; }
+.hero h1 { font-size: 20px; letter-spacing: -.01em; }
+.hero .sub { opacity: .85; font-size: 11px; margin-top: 2px; }
+.hero .meta { text-align: right; font-size: 11px; line-height: 1.6; }
+.hero .meta b { font-size: 14px; }
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 14px 0 6px; }
+.kpi { background: #F3F0FF; border-radius: 12px; padding: 12px 14px; border-top: 3px solid #7C5CFC; }
+.kpi .l { font-size: 8.5px; font-weight: 700; letter-spacing: .06em; color: #67667E; text-transform: uppercase; }
+.kpi .v { font-size: 16px; font-weight: 700; color: #4C3D9E; margin-top: 4px; }
+h2 { font-size: 13px; color: #4C3D9E; margin: 20px 0 8px; display: flex; align-items: center; gap: 8px; }
+h2::before { content: ''; width: 4px; height: 14px; border-radius: 2px; background: #7C5CFC; }
+table { width: 100%; border-collapse: collapse; }
+thead { display: table-header-group; }
+th { background: #4C3D9E; color: #fff; font-size: 9px; text-transform: uppercase; letter-spacing: .04em; padding: 8px 8px; text-align: left; }
+th:first-child { border-top-left-radius: 8px; } th:last-child { border-top-right-radius: 8px; }
+td { padding: 7px 8px; border-bottom: 1px solid #ECECF4; vertical-align: middle; }
+tr { page-break-inside: avoid; }
+tbody tr:nth-child(even) td { background: #FAF9FF; }
+.c { text-align: center; } .r { text-align: right; font-variant-numeric: tabular-nums; }
+.empty { text-align: center; color: #9C9BAE; font-style: italic; padding: 16px; }
+.pill { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 9px; font-weight: 700; white-space: nowrap; }
+.pill.ok { background: #D8F5E6; color: #1FA971; } .pill.wait { background: #FFF1D6; color: #B26B00; }
+.pill.ko { background: #FBDDE2; color: #D6304A; } .pill.off { background: #EEEEF5; color: #67667E; }
+.note { margin-top: 14px; font-size: 9px; color: #67667E; font-style: italic; }
+.foot { margin-top: 22px; padding-top: 10px; border-top: 1px solid #E3E3EE; font-size: 9px; color: #9C9BAE; display: flex; justify-content: space-between; }
+@media print { .bar { display: none; } .page { padding: 0; max-width: none; } }
+</style></head><body>
+<div class="bar"><span>Aperçu du rapport — utilise « Enregistrer au format PDF » dans la fenêtre d'impression.</span><button onclick="window.print()">🖨 Imprimer / PDF</button></div>
+<div class="page">
+ <div class="hero">
+  <div class="brand"><div class="logo">A</div><div><h1>Alpdy Agency</h1><div class="sub">Rapport de performance</div></div></div>
+  <div class="meta"><b>${esc(d.label)}</b><br>Généré le ${esc(gen)}<br>${fmtNum(d.price)} FCFA / 1 000 vues</div>
+ </div>
+ <div class="kpis">
+  <div class="kpi"><div class="l">Vidéos soumises</div><div class="v">${fmtNum(d.totals.submitted)}</div></div>
+  <div class="kpi"><div class="l">Vues validées</div><div class="v">${fmtNum(d.totals.views)}</div></div>
+  <div class="kpi"><div class="l">Gains générés</div><div class="v">${fmtMoney(d.totals.gains)}</div></div>
+  <div class="kpi"><div class="l">Reste à payer</div><div class="v">${fmtMoney(d.totals.remaining)}</div></div>
+ </div>
+ <h2>Classement des clippers</h2>
+ <table><thead><tr><th class="c">Rang</th><th>Clipper</th><th class="c">Vidéos</th><th class="r">Vues validées</th><th class="r">Gains</th><th class="r">Payé</th><th class="r">Reste dû</th><th class="c">Paiement</th></tr></thead><tbody>${rankRows}</tbody></table>
+ <h2>Vidéos (${fmtNum(d.videos.length)} · ${fmtNum(d.totals.validated)} validées · ${fmtNum(d.totals.pending)} en attente · ${fmtNum(d.totals.rejected)} rejetées)</h2>
+ <table><thead><tr><th>Date</th><th>Clipper</th><th>Titre</th><th class="c">Plateforme</th><th class="r">Vues</th><th class="c">Statut</th></tr></thead><tbody>${vidRows}</tbody></table>
+ <h2>Paiements enregistrés</h2>
+ <table><thead><tr><th>Date</th><th>Clipper</th><th class="r">Montant</th><th class="c">Statut</th></tr></thead><tbody>${payRows}</tbody></table>
+ <p class="note">Seules les vues au statut « Validé » comptent dans les gains et le classement. Reste dû = gains − paiements enregistrés sur la période.</p>
+ <div class="foot"><span>Alpdy Agency — document confidentiel</span><span>${esc(gen)}</span></div>
+</div></body></html>`;
+}
+function exportPDF() {
+    try {
+        const d = buildExportData(exportPeriodValue());
+        const html = buildReportHtml(d);
+        const w = window.open('', '_blank');
+        if (w) {
+            w.document.open(); w.document.write(html); w.document.close();
+            setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 700);
+        } else {
+            const f = document.createElement('iframe');
+            f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+            document.body.appendChild(f);
+            f.contentWindow.document.open(); f.contentWindow.document.write(html); f.contentWindow.document.close();
+            setTimeout(() => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) {} setTimeout(() => f.remove(), 60000); }, 600);
+        }
+        showToast('Rapport généré.');
+    } catch (e) { console.error(e); showToast('Erreur lors de la génération du rapport', 'error'); }
+}
+fillExportPeriods();
+updateExportSummary();
+setInterval(() => { if (SESSION && SESSION.role === 'admin') { fillExportPeriods(); updateExportSummary(); } }, 4000);
+
 
 /* -------- RANKING (shared view) -------- */
 let currentPeriod = monthKey(new Date());
@@ -1619,6 +3242,7 @@ async function syncNow(){
   }
   document.getElementById('login-screen').style.display = 'flex';
 })();
-</script>
+    </script>
 </body>
+
 </html>
